@@ -2,17 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- 移动端适配 & Web App 设置 -->
+    <!-- 1. 移动端核心视口设置 (禁止缩放) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="0804 Flashcards">
     
-    <!-- 图标 -->
     <link rel="icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png" type="image/png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png">
 
-    <!-- 纯净标题 -->
     <title>0804 Flashcards</title>
     
     <style>
@@ -114,23 +112,60 @@
             position: relative;
         }
 
-        /* --- RESPONSIVE --- */
+        /* --- RESPONSIVE MEDIA QUERIES (FIXED) --- */
         @media (max-width: 768px) {
             .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+
             .sidebar {
-                position: fixed; top: 0; left: 0; bottom: 0; height: 100%;
-                background: rgba(255, 255, 255, 0.98); box-shadow: 5px 0 25px rgba(0,0,0,0.1);
-                transform: translateX(-100%); padding-top: calc(60px + env(safe-area-inset-top));
+                position: fixed;
+                top: 0; left: 0; bottom: 0; height: 100%;
+                background: rgba(255, 255, 255, 0.98);
+                box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+                transform: translateX(-100%);
+                padding-top: calc(60px + env(safe-area-inset-top));
             }
             .sidebar.active { transform: translateX(0); }
-            .main-content { width: 100%; padding: 20px 15px; padding-top: 80px; }
+
+            /* FIXED: Content Layout */
+            .main-content {
+                width: 100%;
+                padding: 20px 15px;
+                padding-top: 80px;
+                /* Ensure study mode takes full height on mobile */
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* FIXED: Study Container on Mobile */
+            .study-container {
+                height: auto !important; /* Let it grow/shrink */
+                flex: 1; /* Take remaining space */
+                justify-content: center;
+            }
+
+            /* FIXED: 3D Scene Size on Mobile */
+            .scene { 
+                width: 85vw !important; /* Use Viewport Width */
+                height: 55vh !important; /* Use Viewport Height */
+                margin-bottom: 20px !important;
+            }
+
+            /* FIXED: Controls spacing */
+            .controls {
+                gap: 15px !important;
+            }
+            .control-btn {
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 20px !important;
+            }
+
             .grid-list { grid-template-columns: 1fr; } 
             .creator-container { flex-direction: column; height: auto; }
             .creator-main { padding: 20px 15px !important; }
             .creator-toolbox { height: 300px; }
             .modal-content, .modal-content.wide { width: 90%; max-height: 85vh; flex-direction: column; }
             .edit-card-left, .edit-card-right { width: 100%; }
-            .scene { width: 100%; height: 350px; }
         }
 
         /* --- COMPONENTS --- */
@@ -148,14 +183,13 @@
         .btn-active { background: white; color: var(--primary-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .btn-danger { background: #ff7675; color: white; }
         .btn-secondary { background: #eee; color: #555; }
-        
         .btn-action-center { display: block; margin: 25px auto 0 auto; width: 100%; max-width: 300px; }
 
         .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
         .btn-trash-link { color: #636e72; font-size: 13px; }
         .btn-settings-link { color: #636e72; font-size: 13px; }
 
-        .view-section { display: none; animation: fadeIn 0.4s ease; }
+        .view-section { display: none; animation: fadeIn 0.4s ease; width: 100%; } /* Width 100% important for flex children */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .section-header {
@@ -187,15 +221,20 @@
         .btn-delete-item { right: 10px; background: #ff7675; color: white; }
         .btn-edit-item { right: 40px; background: #74b9ff; color: white; }
         
+        /* TRASH ITEM STYLE */
         .trash-item { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;
+            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            border: 1px solid #eee;
         }
+        .trash-item-info { display: flex; flex-direction: column; }
+        .trash-type { font-size: 10px; text-transform: uppercase; color: #aaa; font-weight: 700; margin-bottom: 4px; }
         .trash-title { font-weight: 600; color: #444; font-size: 14px;}
         .trash-actions { display: flex; gap: 10px; }
         .btn-restore { color: #00b894; background: rgba(0, 184, 148, 0.1); padding: 5px 10px; border-radius: 6px; border:none; cursor: pointer;}
         .btn-forever { color: #ff7675; background: rgba(255, 118, 117, 0.1); padding: 5px 10px; border-radius: 6px; border:none; cursor: pointer;}
 
+        /* SETTINGS */
         .settings-card {
             background: white; border-radius: 20px; padding: 20px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px;
@@ -215,7 +254,7 @@
         .tab-btn.active { background: var(--primary); color: white; }
 
         .toolbox-search { padding: 10px; margin-bottom: 10px; background: #f5f5f5; border: none; }
-        .toolbox-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 5px; }
+        .toolbox-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
         
         .toolbox-draggable {
             padding: 12px; background: #fff; border: 1px solid #eee; 
@@ -244,10 +283,34 @@
         }
         input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.1); }
 
-        /* --- STUDY MODE --- */
-        .study-container { display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; }
-        .study-content-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .scene { width: 650px; height: 450px; perspective: 1000px; margin-bottom: 30px; position: relative; }
+        /* --- STUDY MODE (FIXED) --- */
+        /* On Desktop */
+        .study-container { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100%; 
+            width: 100%; 
+        }
+        
+        .study-content-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative;
+            width: 100%; /* Ensure wrapper takes width */
+        }
+        
+        /* Desktop Scene */
+        .scene { 
+            width: 650px; 
+            height: 450px; 
+            perspective: 1000px; 
+            margin-bottom: 30px; 
+            position: relative; 
+        }
+
         .card { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: default; }
         .card.is-flipped { transform: rotateY(180deg); }
         
@@ -312,24 +375,14 @@
         .modal-content.wide { width: 900px; display: flex; gap: 20px; }
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
-        
         .label-text { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
         .edit-card-left { flex: 2; }
         .edit-card-right { flex: 1; background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid #eee; display: flex; flex-direction: column; }
         .deck-preview-list { font-family: var(--font-serif); line-height: 1.8; font-size: 16px; }
-
-        /* --- CONFIRM DELETE MODAL --- */
         #confirm-modal-content { width: 400px; text-align: center; padding: 30px; background: #2d3436; color: white; }
         #confirm-title { font-size: 22px; font-weight: 700; color: white; margin-bottom: 15px; }
         #confirm-msg { color: #bbb; margin-bottom: 30px; font-size: 15px; }
         .confirm-actions { display: flex; gap: 15px; justify-content: center; }
-        
-        .sorter-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 400px; overflow-y: auto; }
-        .sorter-item { display: flex; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-radius: 10px; border: 1px solid #eee; transition: all 0.2s; cursor: pointer; }
-        .sorter-item.selected { border-color: var(--primary); background: #fff0f5; }
-        .sorter-checkbox { width: 18px; height: 18px; border-radius: 4px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; }
-        .sorter-item.selected .sorter-checkbox { background: var(--primary); border-color: var(--primary); }
-
         #import-file-input { display: none; }
 
     </style>
@@ -338,7 +391,12 @@
 
     <div id="notification-area"></div>
 
-    <!-- DELETE MODAL (Initially Hidden) -->
+    <!-- MOBILE MENU BUTTON -->
+    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+    <!-- MOBILE OVERLAY -->
+    <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
+    <!-- DELETE MODAL -->
     <div class="modal-overlay" id="confirm-modal" style="display: none;">
         <div class="modal-content" id="confirm-modal-content">
             <div id="confirm-title">Are you sure?</div>
@@ -432,16 +490,8 @@
         <div id="view-settings" class="view-section">
             <h2>Settings & Backup</h2>
             <p style="color:#666; margin-bottom:30px;">Manage your data securely.</p>
-            
-            <div class="settings-card">
-                <div class="settings-info"><h3>Export Data</h3><p>Backup all decks and resources.</p></div>
-                <button class="btn btn-primary" onclick="exportData()">📥 Export</button>
-            </div>
-            <div class="settings-card">
-                <div class="settings-info"><h3>Import Data</h3><p>Restore from backup (merges data).</p></div>
-                <button class="btn btn-secondary" onclick="triggerImport()">📤 Import</button>
-                <input type="file" id="import-file-input" accept=".json" onchange="importData(this)">
-            </div>
+            <div class="settings-card"><div class="settings-info"><h3>Export Data</h3><p>Backup all decks and resources.</p></div><button class="btn btn-primary" onclick="exportData()">📥 Export</button></div>
+            <div class="settings-card"><div class="settings-info"><h3>Import Data</h3><p>Restore from backup (merges data).</p></div><button class="btn btn-secondary" onclick="triggerImport()">📤 Import</button><input type="file" id="import-file-input" accept=".json" onchange="importData(this)"></div>
         </div>
 
     </div>
@@ -463,7 +513,7 @@
         let sorterItems = []; let pendingDeleteAction = null;
         let currentDashboardTab = 'Speaking';
 
-        // Updated Love Notes
+        // Love Notes
         const loveNotes = [
             "宝，背单词辛苦啦! 奖励一个抱抱 🤗",
             "雅思必过! 🦆💯",
@@ -509,7 +559,6 @@
             if(viewId === 'toolbox') renderToolbox('story');
             if(viewId === 'create') renderToolboxPicker();
             if(viewId === 'trash') renderTrash();
-            // Settings is static
         }
 
         function showToast(msg, type='success') {
@@ -519,64 +568,51 @@
             c.appendChild(t); setTimeout(() => { t.remove(); }, 3500);
         }
 
-        /* --- SMART IMPORT: DEDUPLICATION LOGIC --- */
+        /* --- BACKUP SYSTEM --- */
         function exportData() {
             const data = { decks, resources, trash: trashBin, date: new Date().toLocaleString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `0804_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            const a = document.createElement('a');
+            a.href = url; a.download = `0804_Backup_${new Date().toISOString().slice(0,10)}.json`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
             showToast("Backup downloaded!");
         }
         function triggerImport() { document.getElementById('import-file-input').click(); }
-        
         function importData(input) {
             const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    
-                    // 1. Decks Deduplication
-                    const currentDeckIds = new Set(decks.map(d => d.id));
-                    const newDecks = (imported.decks || []).filter(d => !currentDeckIds.has(d.id));
-                    decks = [...decks, ...newDecks];
+                try { const imported = JSON.parse(e.target.result);
+                    if (imported.decks) { 
+                        // Smart Merge
+                        const currentDeckIds = new Set(decks.map(d => d.id));
+                        const newDecks = (imported.decks || []).filter(d => !currentDeckIds.has(d.id));
+                        decks = [...decks, ...newDecks];
 
-                    // 2. Resources Deduplication
-                    const currentResIds = new Set(resources.map(r => r.id));
-                    const newResources = (imported.resources || []).filter(r => !currentResIds.has(r.id));
-                    resources = [...resources, ...newResources];
+                        const currentResIds = new Set(resources.map(r => r.id));
+                        const newResources = (imported.resources || []).filter(r => !currentResIds.has(r.id));
+                        resources = [...resources, ...newResources];
 
-                    // 3. Trash Deduplication
-                    let newTrashCount = 0;
-                    if (imported.trash) {
-                        const currentTrashIds = new Set(trashBin.map(t => t.id));
-                        const newTrash = imported.trash.filter(t => !currentTrashIds.has(t.id));
-                        trashBin = [...trashBin, ...newTrash];
-                        newTrashCount = newTrash.length;
-                    }
+                        if(imported.trash) {
+                            const currentTrashIds = new Set(trashBin.map(t => t.id));
+                            const newTrash = imported.trash.filter(t => !currentTrashIds.has(t.id));
+                            trashBin = [...trashBin, ...newTrash];
+                        }
 
-                    // 4. Save All
-                    localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
-                    localStorage.setItem('0804_v4_resources', JSON.stringify(resources));
-                    localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin));
+                        localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
+                        localStorage.setItem('0804_v4_resources', JSON.stringify(resources));
+                        localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin));
 
-                    // 5. Feedback
-                    const totalNew = newDecks.length + newResources.length + newTrashCount;
-                    if (totalNew === 0) {
-                        showToast("No new data found. All items were duplicates.", "error");
-                    } else {
-                        showToast(`Success! Imported ${newDecks.length} decks and ${newResources.length} materials.`);
-                        renderDashboard(currentDashboardTab);
-                    }
-
-                } catch (err) { 
-                    showToast("Error parsing file", "error"); 
-                }
-            }; 
-            reader.readAsText(file); input.value = '';
+                        const totalNew = newDecks.length + newResources.length;
+                        if(totalNew === 0) showToast("No new data found.", "error");
+                        else showToast(`Success! Imported ${newDecks.length} decks & ${newResources.length} items.`);
+                        
+                        renderDashboard(currentDashboardTab); 
+                    } else { showToast("Invalid backup file", "error"); }
+                } catch (err) { showToast("Error parsing file", "error"); }
+            }; reader.readAsText(file); input.value = '';
         }
-
 
         /* --- DASHBOARD --- */
         function renderDashboard(tabName = 'Speaking') {
@@ -624,7 +660,7 @@
             el.onclick = () => startStudy(d.id); return el;
         }
 
-        /* --- TRASH & DELETE --- */
+        /* --- DELETE ACTIONS --- */
         function showConfirmModal(msg, action) { document.getElementById('confirm-msg').innerText = msg; pendingDeleteAction = action; document.getElementById('confirm-modal').style.display = 'flex'; }
         document.getElementById('confirm-btn-action').onclick = () => { if(pendingDeleteAction) pendingDeleteAction(); closeModal('confirm-modal'); };
         function confirmDeleteDeck(id, e) { e.stopPropagation(); showConfirmModal("Move collection to trash?", () => { const d = decks.find(d => d.id === id); if(d) { moveToTrash('deck', d); decks = decks.filter(d => d.id !== id); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); showToast("Moved to trash."); } }); }
