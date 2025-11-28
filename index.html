@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- 移动端适配 & Web App 设置 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="0804 Flashcards">
     
+    <!-- 新图标 -->
     <link rel="icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png" type="image/png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png">
+
     <title>0804 Flashcards</title>
     <style>
+        /* --- VARIABLES & THEME --- */
         :root {
             --primary: #fd79a8; 
             --primary-dark: #e84393;
@@ -25,7 +29,7 @@
             --sidebar-width: 260px;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         
         body {
             margin: 0; padding: 0;
@@ -35,17 +39,19 @@
             color: var(--text-main);
             overflow: hidden;
             display: flex;
+            /* Notch Support */
             padding-top: env(safe-area-inset-top); 
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
 
+        /* --- NOTIFICATIONS --- */
         #notification-area {
-            position: fixed; top: calc(20px + env(safe-area-inset-top)); right: 20px; z-index: 4000;
+            position: fixed; top: calc(20px + env(safe-area-inset-top)); right: 20px; z-index: 5000;
             display: flex; flex-direction: column; gap: 10px; pointer-events: none;
         }
         .toast {
@@ -56,13 +62,39 @@
             border-left: 5px solid #ccc;
             animation: slideIn 0.4s forwards;
             font-size: 14px; font-weight: 600; color: #444;
-            min-width: 280px; display: flex; align-items: center; gap: 12px;
+            min-width: 200px; display: flex; align-items: center; gap: 12px;
         }
         .toast.success { border-left-color: #00b894; }
         .toast.error { border-left-color: #ff7675; }
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* --- SIDEBAR --- */
+        /* --- MOBILE MENU BUTTON (Hidden on Desktop) --- */
+        .mobile-menu-btn {
+            display: none; /* Default hidden */
+            position: fixed;
+            top: calc(15px + env(safe-area-inset-top));
+            left: 20px;
+            z-index: 3000;
+            background: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 20px;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        /* --- MOBILE OVERLAY (Hidden by default) --- */
+        .mobile-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
+            z-index: 1900; /* Below sidebar, above content */
+            display: none; opacity: 0; transition: opacity 0.3s;
+        }
+        .mobile-overlay.active { display: block; opacity: 1; }
+
+        /* --- LAYOUT --- */
         .sidebar {
             width: var(--sidebar-width);
             background: rgba(255,255,255,0.5);
@@ -70,29 +102,66 @@
             border-right: 1px solid rgba(255,255,255,0.6);
             padding: 30px 20px;
             display: flex; flex-direction: column; gap: 15px;
-            z-index: 10;
+            z-index: 2000; /* High z-index for mobile overlay */
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
-
-        h1 { font-family: var(--font-serif); font-size: 28px; color: var(--text-main); margin: 0 0 20px 0; letter-spacing: -0.5px; }
-        
-        /* --- EASTER EGG HEART STYLE --- */
-        #love-heart {
-            color: var(--primary); 
-            font-size: 24px; 
-            cursor: pointer; 
-            display: inline-block; 
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
             position: relative;
-            top: 2px;
         }
-        #love-heart:hover {
-            transform: scale(1.3) rotate(10deg);
+
+        /* --- RESPONSIVE MEDIA QUERIES (The Magic) --- */
+        @media (max-width: 768px) {
+            /* Show Hamburger */
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+
+            /* Sidebar: Hide off-screen by default */
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0; bottom: 0;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.98); /* More opaque on mobile */
+                box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+                transform: translateX(-100%); /* Hide left */
+                padding-top: calc(60px + env(safe-area-inset-top)); /* Space for notch/header */
+            }
+            
+            /* Sidebar Active State (Slide In) */
+            .sidebar.active { transform: translateX(0); }
+
+            /* Main Content: Full Width */
+            .main-content {
+                width: 100%;
+                padding: 20px;
+                padding-top: 70px; /* Space for hamburger */
+            }
+
+            /* Adjust Grids */
+            .grid-list { grid-template-columns: 1fr; } /* Single column on mobile */
+            
+            /* Adjust Creator Layout */
+            .creator-container { flex-direction: column; height: auto; }
+            .creator-toolbox { height: 300px; }
+
+            /* Adjust Modals */
+            .modal-content, .modal-content.wide { 
+                width: 90%; 
+                max-height: 85vh; 
+                flex-direction: column;
+            }
+            .edit-card-left, .edit-card-right { width: 100%; }
+            
+            /* Adjust Scene */
+            .scene { width: 100%; height: 350px; }
         }
-        #love-heart:active {
-            transform: scale(0.9);
-        }
+
+        /* --- COMPONENTS --- */
+        h1 { font-family: var(--font-serif); font-size: 28px; color: var(--text-main); margin: 0 0 20px 0; letter-spacing: -0.5px; }
+        #love-heart { color: var(--primary); font-size: 24px; cursor: pointer; display: inline-block; transition: transform 0.3s; position: relative; top: 2px; }
+        #love-heart:hover { transform: scale(1.3) rotate(10deg); }
 
         .btn {
             padding: 12px 15px; border-radius: 12px; border: none;
@@ -100,14 +169,10 @@
             display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; 
         }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4); }
-        .btn-primary:hover { transform: translateY(-2px); background: var(--primary-dark); }
         .btn-ghost { background: transparent; color: #555; justify-content: flex-start;}
-        .btn-ghost:hover { background: rgba(255,255,255,0.5); color: var(--primary-dark); }
         .btn-active { background: white; color: var(--primary-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .btn-danger { background: #ff7675; color: white; box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3); width: auto; padding: 10px 20px; }
-        .btn-danger:hover { background: #d63031; transform: translateY(-2px); }
-        .btn-secondary { background: #eee; color: #555; width: auto; padding: 10px 20px; }
-        .btn-secondary:hover { background: #ddd; }
+        .btn-danger { background: #ff7675; color: white; }
+        .btn-secondary { background: #eee; color: #555; }
         
         .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
         .btn-trash-link { color: #636e72; font-size: 13px; }
@@ -124,11 +189,7 @@
         .section-title-group { display: flex; align-items: center; gap: 10px; }
         .section-header span { font-size: 14px; color: #888; font-weight: 400; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; }
         
-        .btn-view-all {
-            font-size: 13px; color: var(--primary); cursor: pointer; background: none; border: none; font-weight: 600;
-            display: flex; align-items: center; gap: 5px; transition: all 0.2s;
-        }
-        .btn-view-all:hover { transform: translateX(2px); color: var(--primary-dark); }
+        .btn-view-all { font-size: 13px; color: var(--primary); cursor: pointer; background: none; border: none; font-weight: 600; }
 
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; transition: all 0.3s ease; }
         .hidden-deck { display: none; }
@@ -139,7 +200,6 @@
             border-radius: 16px; padding: 20px; cursor: pointer;
             transition: all 0.3s; position: relative;
         }
-        .card-item:hover { transform: translateY(-3px); background: white; box-shadow: var(--shadow); }
         
         .item-action-btn {
             position: absolute; top: 10px; width: 24px; height: 24px; border-radius: 50%;
@@ -152,30 +212,22 @@
         
         .trash-item { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;
+            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            border: 1px solid #eee;
         }
-        .trash-item-info { display: flex; flex-direction: column; }
-        .trash-type { font-size: 10px; text-transform: uppercase; color: #aaa; font-weight: 700; margin-bottom: 4px; }
-        .trash-title { font-weight: 600; color: #444; }
+        .trash-title { font-weight: 600; color: #444; font-size: 14px;}
         .trash-actions { display: flex; gap: 10px; }
-        .btn-restore { color: #00b894; background: rgba(0, 184, 148, 0.1); padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border:none;}
-        .btn-forever { color: #ff7675; background: rgba(255, 118, 117, 0.1); padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border:none;}
+        .btn-restore { color: #00b894; background: rgba(0, 184, 148, 0.1); padding: 5px 10px; border-radius: 6px; border:none; }
+        .btn-forever { color: #ff7675; background: rgba(255, 118, 117, 0.1); padding: 5px 10px; border-radius: 6px; border:none; }
 
         .settings-card {
-            background: white; border-radius: 20px; padding: 30px; 
+            background: white; border-radius: 20px; padding: 20px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .settings-info h3 { margin: 0 0 5px 0; color: var(--text-main); }
-        .settings-info p { margin: 0; color: #888; font-size: 13px; }
-        .settings-card button { width: auto; padding: 10px 20px; }
+        .settings-info h3 { margin: 0 0 5px 0; font-size: 16px; } .settings-info p { margin: 0; color: #888; font-size: 12px; }
+        .settings-card button { width: auto; padding: 8px 15px; }
 
-        .creator-container { display: flex; gap: 20px; max-width: 1100px; margin: 0 auto; height: 85vh; }
-        .creator-main {
-            flex: 2; display: flex; flex-direction: column; gap: 15px;
-            background: rgba(255,255,255,0.6); backdrop-filter: blur(15px);
-            padding: 30px; border-radius: 24px; overflow-y: auto;
-        }
         .creator-toolbox {
             flex: 1; display: flex; flex-direction: column;
             background: white; border-radius: 24px; padding: 20px;
@@ -187,7 +239,7 @@
         .tab-btn.active { background: var(--primary); color: white; }
 
         .toolbox-search { padding: 10px; margin-bottom: 10px; background: #f5f5f5; border: none; }
-        .toolbox-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+        .toolbox-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 5px; }
         
         .toolbox-draggable {
             padding: 12px; background: #fff; border: 1px solid #eee; 
@@ -206,6 +258,8 @@
             transition: opacity 0.2s ease, transform 0.2s ease; transform: translateX(10px); 
             font-weight: 400; color: #555;
         }
+        /* Hide tooltip on mobile to prevent clutter */
+        @media (max-width: 768px) { .preview-tooltip { display: none; } }
         .toolbox-draggable:hover .preview-tooltip { visibility: visible; opacity: 1; transform: translateX(0); }
 
         input, select, textarea {
@@ -215,10 +269,7 @@
         }
         input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.1); }
 
-        /* --- STUDY MODE --- */
-        .study-container { display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; }
-        .study-content-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .scene { width: 650px; height: 450px; perspective: 1000px; margin-bottom: 30px; position: relative; }
+        /* --- STUDY CARD --- */
         .card { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: default; }
         .card.is-flipped { transform: rotateY(180deg); }
         
@@ -226,11 +277,11 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             backface-visibility: hidden; -webkit-backface-visibility: hidden;
             border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 40px; text-align: center; background: white; box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            padding: 30px; text-align: center; background: white; box-shadow: 0 20px 60px rgba(0,0,0,0.08);
         }
         .card-face.back { 
             background: #2d3436; color: #ffffff; transform: rotateY(180deg); border: 1px solid #444; 
-            justify-content: flex-start; align-items: flex-start; padding: 60px 40px 40px 40px; 
+            justify-content: flex-start; align-items: flex-start; padding: 60px 30px 30px 30px; 
             overflow-y: auto; text-align: left; font-family: var(--font-serif);
         }
         #card-back-content { width: 100%; font-size: 18px; line-height: 1.8; color: #ecf0f1; }
@@ -247,57 +298,42 @@
         }
         .card-face.back .deck-badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
 
-        .topic-title { font-family: var(--font-serif); font-size: 32px; font-weight: 700; margin-bottom: 30px; color: var(--primary-dark); line-height: 1.3; max-width: 90%; margin-top: 20px; }
+        .topic-title { font-family: var(--font-serif); font-size: 28px; font-weight: 700; margin-bottom: 20px; color: var(--primary-dark); line-height: 1.3; max-width: 95%; margin-top: 20px; }
         .requirements-list {
-            list-style: none; padding: 25px 35px; text-align: left;
+            list-style: none; padding: 20px; text-align: left;
             background: #f8f9fa; border-radius: 16px; font-size: 15px; color: #555; 
-            line-height: 1.6; width: 90%; border: 1px solid rgba(0,0,0,0.03);
+            line-height: 1.6; width: 95%; border: 1px solid rgba(0,0,0,0.03);
             font-family: var(--font-serif);
         }
         .requirements-list li { margin-bottom: 8px; display: flex; gap: 10px; }
         .requirements-list li::before { content: "•"; color: var(--primary); font-weight: bold; font-size: 18px; line-height: 1; }
         
-        .smart-link { 
-            color: var(--link-color); font-weight: 700; cursor: pointer; 
-            border-bottom: 1px dashed rgba(162, 155, 254, 0.5); display: inline; transition: all 0.2s; 
-        }
+        .smart-link { color: var(--link-color); font-weight: 700; cursor: pointer; border-bottom: 1px dashed rgba(162, 155, 254, 0.5); display: inline; transition: all 0.2s; }
         .smart-link:hover { color: #fff; background: var(--link-color); border-radius: 4px; padding: 0 4px; border-bottom-color: transparent; }
-        .ref-tooltip {
-            visibility: hidden; opacity: 0; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%) translateY(10px);
-            background: white; color: #333; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 400;
-            width: 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); pointer-events: none; transition: all 0.2s; z-index: 20;
-        }
-        .smart-link:hover .ref-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
-
-        .controls { display: flex; gap: 30px; position: relative; z-index: 10; }
-        .control-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .control-btn:hover { transform: scale(1.1); }
+        
+        .controls { display: flex; gap: 20px; position: relative; z-index: 10; margin-top: 20px; }
+        .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         .btn-yes { color: #00b894; border: 2px solid #00b894; }
         .btn-no { color: #ff7675; border: 2px solid #ff7675; }
-        .btn-trash { position: absolute; right: -70px; top: 10px; width: 40px; height: 40px; font-size: 16px; color: #b2bec3; border: 1px solid #dfe6e9; }
-        .btn-edit { position: absolute; left: -70px; top: 10px; width: 40px; height: 40px; font-size: 16px; color: #a29bfe; border: 1px solid #a29bfe; }
+        .btn-trash { color: #b2bec3; border: 1px solid #dfe6e9; }
+        .btn-edit { color: #a29bfe; border: 1px solid #a29bfe; }
 
         /* --- MODALS --- */
-        .modal-overlay { position: fixed; top: 0; left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); height: 100%; background: rgba(245,245,245,0.8); backdrop-filter: blur(5px); z-index: 3000; display: flex; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 600px; max-height: 80vh; border-radius: 20px; padding: 40px; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.15); position: relative; animation: popIn 0.3s ease; }
-        .modal-content.wide { width: 900px; display: flex; gap: 20px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245,245,245,0.8); backdrop-filter: blur(5px); z-index: 5000; display: none; justify-content: center; align-items: center; }
+        /* Responsive Modal */
+        .modal-content { background: white; width: 600px; max-width: 90%; max-height: 85vh; border-radius: 20px; padding: 30px; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.15); position: relative; animation: popIn 0.3s ease; }
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        
         .label-text { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
-        .edit-card-left { flex: 2; }
-        .edit-card-right { flex: 1; background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid #eee; display: flex; flex-direction: column; }
         .deck-preview-list { font-family: var(--font-serif); line-height: 1.8; font-size: 16px; }
-        #confirm-modal-content { width: 400px; text-align: center; padding: 30px; background: #2d3436; color: white; }
-        #confirm-title { font-size: 22px; font-weight: 700; color: white; margin-bottom: 15px; }
-        #confirm-msg { color: #bbb; margin-bottom: 30px; font-size: 15px; }
+
+        /* CONFIRM DELETE MODAL */
+        #confirm-modal-content { width: 350px; text-align: center; padding: 30px; background: #2d3436; color: white; }
+        #confirm-title { font-size: 20px; font-weight: 700; color: white; margin-bottom: 15px; }
+        #confirm-msg { color: #bbb; margin-bottom: 30px; font-size: 14px; }
         .confirm-actions { display: flex; gap: 15px; justify-content: center; }
         
-        .sorter-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 400px; overflow-y: auto; }
-        .sorter-item { display: flex; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-radius: 10px; border: 1px solid #eee; transition: all 0.2s; cursor: pointer; }
-        .sorter-item.selected { border-color: var(--primary); background: #fff0f5; }
-        .sorter-checkbox { width: 18px; height: 18px; border-radius: 4px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; }
-        .sorter-item.selected .sorter-checkbox { background: var(--primary); border-color: var(--primary); }
-
         #import-file-input { display: none; }
 
     </style>
@@ -306,8 +342,13 @@
 
     <div id="notification-area"></div>
 
-    <!-- DELETE MODAL (Initially Hidden) -->
-    <div class="modal-overlay" id="confirm-modal" style="display: none;">
+    <!-- MOBILE MENU BUTTON -->
+    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+    <!-- MOBILE OVERLAY -->
+    <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
+    <!-- DELETE MODAL -->
+    <div class="modal-overlay" id="confirm-modal">
         <div class="modal-content" id="confirm-modal-content">
             <div id="confirm-title">Are you sure?</div>
             <div id="confirm-msg">This action cannot be undone.</div>
@@ -319,19 +360,17 @@
     </div>
 
     <div class="sidebar">
-        <!-- 💖 Easter Egg Heart -->
         <h1>0804 <span id="love-heart" onclick="showLoveNote()">♥</span></h1>
-        
         <div style="flex: 1; display: flex; flex-direction: column;">
-            <button class="btn btn-ghost" onclick="navTo('dashboard')" id="nav-dashboard">📚 Collections</button>
-            <button class="btn btn-ghost" onclick="navTo('create')" id="nav-create">⚡ New Deck</button>
+            <button class="btn btn-ghost" onclick="navTo('dashboard')">📚 Collections</button>
+            <button class="btn btn-ghost" onclick="navTo('create')">⚡ New Deck</button>
             <div style="height: 20px;"></div>
-            <button class="btn btn-ghost" onclick="navTo('toolbox')" id="nav-toolbox">🧰 Toolbox</button>
-            <button class="btn btn-ghost" onclick="navTo('add-resource')" id="nav-add-resource">➕ Add Material</button>
+            <button class="btn btn-ghost" onclick="navTo('toolbox')">🧰 Toolbox</button>
+            <button class="btn btn-ghost" onclick="navTo('add-resource')">➕ Add Material</button>
             
             <div class="sidebar-bottom">
-                <button class="btn btn-ghost btn-trash-link" onclick="navTo('trash')" id="nav-trash" style="margin-top: auto;">🗑️ Trash Bin</button>
-                <button class="btn btn-ghost btn-settings-link" onclick="navTo('settings')" id="nav-settings">⚙️ Settings / Backup</button>
+                <button class="btn btn-ghost btn-trash-link" onclick="navTo('trash')">🗑️ Trash Bin</button>
+                <button class="btn btn-ghost btn-settings-link" onclick="navTo('settings')">⚙️ Settings / Backup</button>
             </div>
         </div>
     </div>
@@ -403,49 +442,70 @@
             <h2>Settings & Backup</h2>
             <p style="color:#666; margin-bottom:30px;">Manage your data securely.</p>
             <div class="settings-card"><div class="settings-info"><h3>Export Data</h3><p>Backup all decks and resources.</p></div><button class="btn btn-primary" onclick="exportData()">📥 Export</button></div>
-            <div class="settings-card"><div class="settings-info"><h3>Import Data</h3><p>Restore from backup.</p></div><button class="btn btn-secondary" onclick="triggerImport()">📤 Import</button><input type="file" id="import-file-input" accept=".json" onchange="importData(this)"></div>
+            <div class="settings-card"><div class="settings-info"><h3>Import Data</h3><p>Restore from backup (merges data).</p></div><button class="btn btn-secondary" onclick="triggerImport()">📤 Import</button><input type="file" id="import-file-input" accept=".json" onchange="importData(this)"></div>
         </div>
 
     </div>
 
     <!-- MODALS -->
-    <div class="modal-overlay" id="res-modal" style="display:none;" onclick="closeModal('res-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('res-modal')">✕</button><h2 id="modal-title" style="color: var(--primary-dark); font-family: var(--font-serif);">Title</h2><div id="modal-body" class="deck-preview-list" style="color: #444; white-space: pre-wrap;"></div></div></div>
-    <div class="modal-overlay" id="edit-card-modal" style="display:none;" onclick="closeModal('edit-card-modal')"><div class="modal-content wide" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-card-modal')">✕</button><div class="edit-card-left"><h2 style="color: var(--primary-dark); margin-bottom: 20px;">Edit Card</h2><label class="label-text">FRONT TITLE</label><input type="text" id="edit-front-title" style="margin-bottom: 15px;"><label class="label-text">BULLETS</label><textarea id="edit-front-bullets" style="height: 100px; margin-bottom: 15px;"></textarea><label class="label-text">BACK CONTENT</label><textarea id="edit-back-content" style="height: 200px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveCardEdits()">💾 Save Changes</button></div><div class="edit-card-right"><h3 style="font-size: 14px; margin-top: 0; color: #888;">Add Reference</h3><div class="toolbox-tabs"><button class="tab-btn active" id="edit-picker-story" onclick="setEditPickerTab('story')">Story</button><button class="tab-btn" id="edit-picker-deck" onclick="setEditPickerTab('deck')">Decks</button><button class="tab-btn" id="edit-picker-vocab" onclick="setEditPickerTab('vocab')">Vocab</button></div><input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search..." onkeyup="renderEditPicker()"><div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div><p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p></div></div></div>
-    <div class="modal-overlay" id="edit-resource-modal" style="display:none;" onclick="closeModal('edit-resource-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-resource-modal')">✕</button><h2>Edit Material</h2><label class="label-text">TITLE</label><input type="text" id="edit-res-title" style="margin-bottom: 15px;"><label class="label-text">CONTENT</label><textarea id="edit-res-content" style="height: 250px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveResourceEdits()">💾 Save Changes</button></div></div>
-    <div class="modal-overlay" id="edit-deck-modal" style="display:none;" onclick="closeModal('edit-deck-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-deck-modal')">✕</button><h2>Edit Collection</h2><label class="label-text">DECK NAME</label><input type="text" id="edit-deck-name" style="margin-bottom: 15px;"><label class="label-text">CATEGORY</label><select id="edit-deck-cat" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 20px;"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select><button class="btn btn-primary" onclick="saveDeckEdits()">💾 Update Collection</button></div></div>
+    <div class="modal-overlay" id="res-modal"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('res-modal')">✕</button><h2 id="modal-title" style="color: var(--primary-dark); font-family: var(--font-serif);">Title</h2><div id="modal-body" class="deck-preview-list" style="color: #444; white-space: pre-wrap;"></div></div></div>
+    <div class="modal-overlay" id="edit-card-modal"><div class="modal-content wide" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-card-modal')">✕</button><div class="edit-card-left"><h2 style="color: var(--primary-dark); margin-bottom: 20px;">Edit Card</h2><label class="label-text">FRONT TITLE</label><input type="text" id="edit-front-title" style="margin-bottom: 15px;"><label class="label-text">BULLETS</label><textarea id="edit-front-bullets" style="height: 100px; margin-bottom: 15px;"></textarea><label class="label-text">BACK CONTENT</label><textarea id="edit-back-content" style="height: 200px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveCardEdits()">💾 Save Changes</button></div><div class="edit-card-right"><h3 style="font-size: 14px; margin-top: 0; color: #888;">Add Reference</h3><div class="toolbox-tabs"><button class="tab-btn active" id="edit-picker-story" onclick="setEditPickerTab('story')">Story</button><button class="tab-btn" id="edit-picker-deck" onclick="setEditPickerTab('deck')">Decks</button><button class="tab-btn" id="edit-picker-vocab" onclick="setEditPickerTab('vocab')">Vocab</button></div><input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search..." onkeyup="renderEditPicker()"><div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div><p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p></div></div></div>
+    <div class="modal-overlay" id="edit-resource-modal"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-resource-modal')">✕</button><h2>Edit Material</h2><label class="label-text">TITLE</label><input type="text" id="edit-res-title" style="margin-bottom: 15px;"><label class="label-text">CONTENT</label><textarea id="edit-res-content" style="height: 250px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveResourceEdits()">💾 Save Changes</button></div></div>
+    <div class="modal-overlay" id="edit-deck-modal"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-deck-modal')">✕</button><h2>Edit Collection</h2><label class="label-text">DECK NAME</label><input type="text" id="edit-deck-name" style="margin-bottom: 15px;"><label class="label-text">CATEGORY</label><select id="edit-deck-cat" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 20px;"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select><button class="btn btn-primary" onclick="saveDeckEdits()">💾 Update Collection</button></div></div>
 
     <script>
         let decks = JSON.parse(localStorage.getItem('0804_v4_decks')) || [];
         let resources = JSON.parse(localStorage.getItem('0804_v4_resources')) || [];
         let trashBin = JSON.parse(localStorage.getItem('0804_v4_trash')) || [];
+
         let currentDeck = null; let currentCardIndex = 0;
         let currentPickerTab = 'story'; let currentEditPickerTab = 'story'; 
         let currentEditingResourceId = null; let currentEditingDeckId = null;
         let sorterItems = []; let pendingDeleteAction = null;
         let currentDashboardTab = 'Speaking';
 
-        // --- 💖 隐藏彩蛋：每日情话 ---
         const loveNotes = [
-            "宝，背单词辛苦啦! 奖励一个抱抱 🤗",
+            "宝，背单词辛苦啦！奖励一个抱抱 🤗",
             "雅思必过! 🦆💯",
-            "纽约今天很冷, 但想到你就很暖 ☀️",
-            "记得喝水, 记得想我. 💧❤️",
+            "纽约今天很冷, 但想到你就很暖。☀️",
+            "记得喝水, 记得想我。💧❤️",
             "0804 是宇宙最浪漫的坐标 🪐"
         ];
 
         function showLoveNote() {
             const note = loveNotes[Math.floor(Math.random() * loveNotes.length)];
-            openModal("💌 From Fermat", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
+            openModal("💌 来自 Fermat 的悄悄话", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
         }
 
-        window.onload = () => navTo('dashboard');
+        window.onload = () => {
+            // Ensure ALL modals are hidden
+            document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+            navTo('dashboard');
+        };
+
+        function toggleMobileSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.mobile-overlay').classList.toggle('active');
+        }
 
         function navTo(viewId) {
+            // Auto-close mobile sidebar when navigating
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.remove('active');
+                document.querySelector('.mobile-overlay').classList.remove('active');
+            }
+
             document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
             document.getElementById(`view-${viewId}`).style.display = (viewId === 'study') ? 'flex' : 'block';
             document.querySelectorAll('.sidebar .btn').forEach(b => b.classList.remove('btn-active'));
-            let navBtn = document.getElementById(`nav-${viewId}`);
-            if(navBtn) navBtn.classList.add('btn-active');
+            
+            // Specific active class handling
+            const btnMap = {
+                'dashboard': 'nav-dashboard', 'create': 'nav-create',
+                'toolbox': 'nav-toolbox', 'add-resource': 'nav-add-resource',
+                'trash': 'nav-trash', 'settings': 'nav-settings'
+            };
+            if(btnMap[viewId]) document.getElementById(btnMap[viewId]).classList.add('btn-active');
             
             if(viewId === 'dashboard') renderDashboard(currentDashboardTab);
             if(viewId === 'toolbox') renderToolbox('story');
@@ -460,13 +520,14 @@
             c.appendChild(t); setTimeout(() => { t.remove(); }, 3500);
         }
 
-        // --- BACKUP SYSTEM ---
+        // --- BACKUP ---
         function exportData() {
             const data = { decks, resources, trash: trashBin, date: new Date().toLocaleString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `0804_Backup_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast("Backup downloaded!");
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast("Backup downloaded!");
         }
         function triggerImport() { document.getElementById('import-file-input').click(); }
         function importData(input) {
@@ -474,7 +535,7 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 try { const imported = JSON.parse(e.target.result);
-                    if (imported.decks) { decks = [...decks, ...imported.decks]; resources = [...resources, ...imported.resources]; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); if(imported.trash) { trashBin = [...trashBin, ...imported.trash]; localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); } showToast("Data restored successfully!"); renderDashboard(currentDashboardTab); } else { showToast("Invalid backup file", "error"); }
+                    if (imported.decks) { decks = [...decks, ...imported.decks]; resources = [...resources, ...imported.resources]; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); if(imported.trash) { trashBin = [...trashBin, ...imported.trash]; localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); } showToast("Data restored!"); renderDashboard(currentDashboardTab); }
                 } catch (err) { showToast("Error parsing file", "error"); }
             }; reader.readAsText(file); input.value = '';
         }
@@ -485,13 +546,16 @@
             const container = document.getElementById('dashboard-content'); container.innerHTML = '';
             document.getElementById('dash-btn-speaking').classList.toggle('active', tabName === 'Speaking');
             document.getElementById('dash-btn-vocab').classList.toggle('active', tabName === 'Vocabulary');
+
             if(decks.length === 0) { container.innerHTML = '<p style="color:#999;">No collections yet.</p>'; return; }
+
             let filteredDecks = [];
             if (tabName === 'Speaking') {
                 filteredDecks = decks.filter(d => (d.category || "").includes("Speaking"));
                 const partOrder = { "Speaking Part 1": 1, "Speaking Part 2": 2, "Speaking Part 3": 3 };
                 filteredDecks.sort((a, b) => (partOrder[a.category] || 99) - (partOrder[b.category] || 99));
             } else { filteredDecks = decks.filter(d => !(d.category || "").includes("Speaking")); }
+
             if(filteredDecks.length > 0) {
                 if (tabName === 'Speaking') {
                     ['Speaking Part 1', 'Speaking Part 2', 'Speaking Part 3'].forEach(part => {
@@ -522,7 +586,7 @@
             el.onclick = () => startStudy(d.id); return el;
         }
 
-        /* --- DELETE --- */
+        /* --- TRASH & DELETE --- */
         function showConfirmModal(msg, action) { document.getElementById('confirm-msg').innerText = msg; pendingDeleteAction = action; document.getElementById('confirm-modal').style.display = 'flex'; }
         document.getElementById('confirm-btn-action').onclick = () => { if(pendingDeleteAction) pendingDeleteAction(); closeModal('confirm-modal'); };
         function confirmDeleteDeck(id, e) { e.stopPropagation(); showConfirmModal("Move collection to trash?", () => { const d = decks.find(d => d.id === id); if(d) { moveToTrash('deck', d); decks = decks.filter(d => d.id !== id); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); showToast("Moved to trash."); } }); }
@@ -602,7 +666,7 @@
         function bundleSelectedItems() { const sel=sorterItems.filter(i=>i.selected); if(!sel.length) return showToast("Select items","error"); const cat=document.getElementById('sorter-category-name').value.trim(); if(!cat) return showToast("Enter Category Name","error"); sel.forEach(i=>{ let t=i.text, c=i.text, m=i.text.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=i.text.split(/[:：]/); if(p.length>1) t=p[0].trim(); } resources.push({id:Date.now()+Math.random(),title:t,content:c,type:'vocab'}); }); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); const nc={id:Date.now(), frontTitle:cat, frontBullets:[], backContent:sel.map(i=>{ let t=i.text, m=t.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=t.split(/[:：]/); if(p.length>1) t=p[0].trim(); } return `• [${t}]`; }).join('\n')}; let di=decks.findIndex(d=>d.title===cat); if(di===-1) decks.push({id:Date.now(),title:cat,category:'Vocabulary',cards:[nc]}); else decks[di].cards.push(nc); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); showToast(`Bundled into "${cat}"!`); sorterItems=sorterItems.filter(i=>!i.selected); renderSorterList(); document.getElementById('sorter-category-name').value=""; }
         function resetSorter() { sorterItems=[]; document.getElementById('sorter-step-1').style.display='block'; document.getElementById('sorter-step-2').style.display='none'; document.getElementById('sorter-raw-input').value=""; }
         function renderToolbox(t) { const c=document.getElementById('resource-list'); c.innerHTML=''; document.querySelectorAll('.toolbox-tabs .tab-btn').forEach(b=>b.classList.remove('active')); if(t==='story')document.getElementById('tab-btn-story').classList.add('active'); if(t==='vocab')document.getElementById('tab-btn-vocab').classList.add('active'); const f=resources.filter(r=>(t?(r.type||'story')===t:true)); if(!f.length){c.innerHTML='<p style="color:#999">Empty</p>';return;} f.forEach(r=>{ const el=document.createElement('div'); el.className='card-item'; const i=r.type==='vocab'?'💡':'📝'; el.innerHTML=`<button class="item-action-btn btn-delete-item" onclick="deleteResource(${r.id},event)">×</button><button class="item-action-btn btn-edit-item" onclick="openEditResourceModal(${r.id},event)">✎</button><span style="font-size:12px;color:#999">${i} ${r.type==='vocab'?'Vocab':'Story'}</span><h3 style="margin:5px 0">${r.title}</h3><p style="font-size:12px;color:#666">${r.content.substring(0,50)}...</p>`; el.onclick=()=>openModal(r.title,r.content); c.appendChild(el); }); }
-        function processDeck() { const fr=document.getElementById('card-front-input').value, br=document.getElementById('card-back-input').value, ti=document.getElementById('deck-title').value||"Untitled", cat=document.getElementById('deck-category').value; if(!fr.trim()){showToast("Prompt needed","error");return;} const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒！❤️"); }
+        function processDeck() { const fr=document.getElementById('card-front-input').value, br=document.getElementById('card-back-input').value, ti=document.getElementById('deck-title').value||"Untitled", cat=document.getElementById('deck-category').value; if(!fr.trim()){document.getElementById('card-front-input').style.borderColor="#ff7675"; showToast("Prompt is empty!", "error"); return;} const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒！❤️"); }
         function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
         function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦！😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
