@@ -2,17 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- 移动端适配 & Web App 设置 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="0804 Flashcards">
     
-    <!-- 图标 -->
     <link rel="icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png" type="image/png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png">
 
-    <!-- 纯净标题 -->
     <title>0804 Flashcards</title>
     
     <style>
@@ -110,7 +107,7 @@
 
         .main-content {
             flex: 1;
-            padding: 60px; /* OPTIMIZED: Increased breathing room */
+            padding: 60px; /* Optimized Desktop Padding */
             overflow-y: auto;
             position: relative;
         }
@@ -133,7 +130,7 @@
             /* MOBILE: Compact Padding */
             .main-content {
                 width: 100%;
-                padding: 20px 20px; /* Keep side padding reasonable */
+                padding: 20px 20px; 
                 padding-top: 80px;
             }
 
@@ -144,30 +141,31 @@
                 max-width: 100% !important;
             }
 
-            /* MOBILE STUDY FIXES */
+            /* MOBILE STUDY FIXES (Critical Fix Here) */
             .study-container {
-                height: auto !important;
-                min-height: 80vh;
+                height: 100% !important;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
+                align-items: center;
+                padding-bottom: 50px; /* Space for bottom area */
             }
             .scene { 
-                width: 90vw !important; /* FIX: 90% Width */
-                height: 60vh !important; /* FIX: 60% Height */
-                margin-bottom: 30px !important;
+                width: 85vw !important; /* Slightly narrower */
+                height: 50vh !important; /* Reduced height to fit screen */
+                max-height: 500px;
+                margin-bottom: 25px !important;
             }
             
             /* MOBILE CONTROLS FIX */
             .controls {
                 width: 100%;
                 justify-content: center !important;
-                gap: 15px !important;
-                position: static !important; /* Remove relative positioning issues */
+                gap: 20px !important;
+                margin-top: 0 !important;
             }
-            /* Force buttons into a row, remove absolute positioning */
             .btn-trash, .btn-edit {
-                position: static !important; /* IMPORTANT: Reset absolute */
+                position: static !important;
                 width: 50px !important;
                 height: 50px !important;
             }
@@ -195,7 +193,7 @@
         .btn-danger { background: #ff7675; color: white; }
         .btn-secondary { background: #eee; color: #555; }
         
-        .btn-action-center { display: block; margin: 25px auto 0 auto; width: 100%; max-width: 300px; }
+        .btn-action-center { display: flex; margin: 25px auto 0 auto; width: 100%; max-width: 300px; justify-content: center; }
 
         .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
         .btn-trash-link { color: #636e72; font-size: 13px; }
@@ -305,7 +303,7 @@
 
         /* --- STUDY MODE --- */
         .study-container { display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; }
-        .study-content-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .study-content-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; }
         .scene { width: 650px; height: 450px; perspective: 1000px; margin-bottom: 30px; position: relative; }
         .card { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: default; }
         .card.is-flipped { transform: rotateY(180deg); }
@@ -401,7 +399,6 @@
 
     <div id="notification-area"></div>
 
-    <!-- DELETE MODAL -->
     <div class="modal-overlay" id="confirm-modal" style="display: none;">
         <div class="modal-content" id="confirm-modal-content">
             <div id="confirm-title">Are you sure?</div>
@@ -412,6 +409,9 @@
             </div>
         </div>
     </div>
+
+    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+    <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
     <div class="sidebar">
         <h1>0804 <span id="love-heart" onclick="showLoveNote()">♥</span></h1>
@@ -431,7 +431,6 @@
 
     <div class="main-content">
         
-        <!-- DASHBOARD -->
         <div id="view-dashboard" class="view-section">
             <h2>Study Collections</h2>
             <div class="toolbox-tabs" style="margin-top: 20px;">
@@ -441,7 +440,6 @@
             <div id="dashboard-content"></div>
         </div>
 
-        <!-- TOOLBOX -->
         <div id="view-toolbox" class="view-section">
             <h2>Your Toolbox</h2>
             <div class="toolbox-tabs" style="margin-top: 20px;">
@@ -451,7 +449,6 @@
             <div class="grid-list" id="resource-list"></div>
         </div>
 
-        <!-- CREATOR -->
         <div id="view-create" class="view-section">
             <div class="creator-container">
                 <div class="creator-main">
@@ -476,21 +473,31 @@
             </div>
         </div>
 
-        <!-- ADD MATERIAL -->
         <div id="view-add-resource" class="view-section"><div class="creator-main" style="max-width: 900px; margin: 0 auto;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h2>Add Material</h2><select id="res-type-select" onchange="toggleImportMode()" style="width: auto; padding: 8px; border-radius: 8px;"><option value="story">Single Story / Essay</option><option value="sorter">Smart Vocab Sorter</option></select></div><div id="import-single"><input type="text" id="res-title" placeholder="Title (e.g. Chenyu Hua Story)"><textarea id="res-content" style="height: 300px;" placeholder="Write the full content here..."></textarea><button class="btn btn-primary btn-action-center" onclick="saveResource()">💾 Save to Toolbox</button></div><div id="import-sorter" style="display: none;"><div id="sorter-step-1"><p style="color:#666; font-size:13px; margin-bottom:10px;">Paste list to analyze and bundle.</p><textarea id="sorter-raw-input" style="height: 150px;" placeholder="Paste content here..."></textarea><button class="btn btn-primary" onclick="parseRawNotes()" style="margin-top:10px;">Analyze Text ↓</button></div><div id="sorter-step-2" style="display:none; margin-top: 30px;"><div style="display: flex; gap: 10px; margin-bottom: 10px;"><input type="text" id="sorter-category-name" placeholder="Category Name (Card Title) - e.g. Happiness"><button class="btn btn-primary" onclick="bundleSelectedItems()" style="width: 200px;">📦 Bundle & Save</button></div><div class="sorter-list" id="sorter-results-list"></div></div></div></div></div>
         
-        <!-- STUDY MODE -->
-        <div id="view-study" class="view-section study-container"><div class="study-content-wrapper"><div class="scene"><div class="card" id="flashcard" onclick="flipCard(event)"><div class="card-face front"><div class="topic-title" id="card-front-title">Topic</div><ul class="requirements-list" id="card-front-reqs"></ul></div><div class="card-face back"><div class="deck-badge" id="card-deck-badge-back">Deck</div><div id="card-back-content"></div></div></div></div>
-        <!-- CONTROLS CONTAINER -->
-        <div class="controls">
-            <button class="control-btn btn-no" onclick="nextCard(false)">✕</button>
-            <button class="control-btn btn-yes" onclick="nextCard(true)">✓</button>
-            <button class="control-btn btn-trash" onclick="confirmDeleteCard()">🗑️</button>
-            <button class="control-btn btn-edit" onclick="openEditCardModal()">✎</button>
+        <div id="view-study" class="view-section study-container">
+            <div class="study-content-wrapper">
+                <div class="scene">
+                    <div class="card" id="flashcard" onclick="flipCard(event)">
+                        <div class="card-face front">
+                            <div class="topic-title" id="card-front-title">Topic</div>
+                            <ul class="requirements-list" id="card-front-reqs"></ul>
+                        </div>
+                        <div class="card-face back">
+                            <div class="deck-badge" id="card-deck-badge-back">Deck</div>
+                            <div id="card-back-content"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="control-btn btn-no" onclick="nextCard(false)">✕</button>
+                    <button class="control-btn btn-yes" onclick="nextCard(true)">✓</button>
+                    <button class="control-btn btn-trash" onclick="confirmDeleteCard()">🗑️</button>
+                    <button class="control-btn btn-edit" onclick="openEditCardModal()">✎</button>
+                </div>
+            </div>
         </div>
-        </div></div>
 
-        <!-- TRASH BIN VIEW -->
         <div id="view-trash" class="view-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h2>Trash Bin</h2>
@@ -499,7 +506,6 @@
             <div id="trash-list" style="max-width: 800px;"></div>
         </div>
 
-        <!-- SETTINGS VIEW -->
         <div id="view-settings" class="view-section">
             <h2>Settings & Backup</h2>
             <p style="color:#666; margin-bottom:30px;">Manage your data securely.</p>
@@ -509,7 +515,6 @@
 
     </div>
 
-    <!-- MODALS -->
     <div class="modal-overlay" id="res-modal" style="display:none;" onclick="closeModal('res-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('res-modal')">✕</button><h2 id="modal-title" style="color: var(--primary-dark); font-family: var(--font-serif);">Title</h2><div id="modal-body" class="deck-preview-list" style="color: #444; white-space: pre-wrap;"></div></div></div>
     <div class="modal-overlay" id="edit-card-modal" style="display:none;" onclick="closeModal('edit-card-modal')"><div class="modal-content wide" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-card-modal')">✕</button><div class="edit-card-left"><h2 style="color: var(--primary-dark); margin-bottom: 20px;">Edit Card</h2><label class="label-text">FRONT TITLE</label><input type="text" id="edit-front-title" style="margin-bottom: 15px;"><label class="label-text">BULLETS</label><textarea id="edit-front-bullets" style="height: 100px; margin-bottom: 15px;"></textarea><label class="label-text">BACK CONTENT</label><textarea id="edit-back-content" style="height: 200px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveCardEdits()">💾 Save Changes</button></div><div class="edit-card-right"><h3 style="font-size: 14px; margin-top: 0; color: #888;">Add Reference</h3><div class="toolbox-tabs"><button class="tab-btn active" id="edit-picker-story" onclick="setEditPickerTab('story')">Story</button><button class="tab-btn" id="edit-picker-deck" onclick="setEditPickerTab('deck')">Decks</button><button class="tab-btn" id="edit-picker-vocab" onclick="setEditPickerTab('vocab')">Vocab</button></div><input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search..." onkeyup="renderEditPicker()"><div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div><p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p></div></div></div>
     <div class="modal-overlay" id="edit-resource-modal" style="display:none;" onclick="closeModal('edit-resource-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-resource-modal')">✕</button><h2>Edit Material</h2><label class="label-text">TITLE</label><input type="text" id="edit-res-title" style="margin-bottom: 15px;"><label class="label-text">CONTENT</label><textarea id="edit-res-content" style="height: 250px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveResourceEdits()">💾 Save Changes</button></div></div>
@@ -758,7 +763,7 @@
                 document.getElementById('card-front-input').style.borderColor="#ff7675"; 
                 showToast("Prompt is empty!", "error"); return; 
             }
-            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒!❤️"); }
+            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒! ❤️"); }
         function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
         function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦! 😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
