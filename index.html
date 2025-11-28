@@ -465,16 +465,17 @@
         let currentDashboardTab = 'Speaking';
 
         const loveNotes = [
-            "宝，背单词辛苦啦！奖励一个抱抱 🤗",
+            "宝，背单词辛苦啦! 奖励一个抱抱 🤗",
             "雅思必过! 🦆💯",
-            "纽约今天很冷, 但想到你就很暖。☀️",
-            "记得喝水, 记得想我。💧❤️",
-            "0804 是宇宙最浪漫的坐标 🪐"
+            "纽约今天很冷, 但想到你就很暖.☀️",
+            "记得喝水, 记得想我 💧❤️",
+            "0804 是宇宙最浪漫的坐标 🪐",
+            "小幸运和我都陪着宝宝 ❤️"
         ];
 
         function showLoveNote() {
             const note = loveNotes[Math.floor(Math.random() * loveNotes.length)];
-            openModal("💌 来自 Fermat 的悄悄话", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
+            openModal("💌 来自 Fermat", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
         }
 
         window.onload = () => {
