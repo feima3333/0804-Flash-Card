@@ -41,7 +41,6 @@
             color: var(--text-main);
             overflow: hidden;
             display: flex;
-            /* Notch Support */
             padding-top: env(safe-area-inset-top); 
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -115,39 +114,20 @@
             position: relative;
         }
 
-        /* --- RESPONSIVE MEDIA QUERIES --- */
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
             .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
-
             .sidebar {
-                position: fixed;
-                top: 0; left: 0; bottom: 0;
-                height: 100%;
-                background: rgba(255, 255, 255, 0.98);
-                box-shadow: 5px 0 25px rgba(0,0,0,0.1);
-                transform: translateX(-100%);
-                padding-top: calc(60px + env(safe-area-inset-top));
+                position: fixed; top: 0; left: 0; bottom: 0; height: 100%;
+                background: rgba(255, 255, 255, 0.98); box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+                transform: translateX(-100%); padding-top: calc(60px + env(safe-area-inset-top));
             }
             .sidebar.active { transform: translateX(0); }
-
-            /* FIXED: Mobile Padding Adjustment */
-            .main-content {
-                width: 100%;
-                padding: 20px 15px; /* Reduced side padding to 15px */
-                padding-top: 80px; /* Clear hamburger */
-            }
-
-            /* Adjust Grids & Cards */
+            .main-content { width: 100%; padding: 20px 15px; padding-top: 80px; }
             .grid-list { grid-template-columns: 1fr; } 
             .creator-container { flex-direction: column; height: auto; }
-            
-            /* FIXED: Creator Main Padding */
-            .creator-main {
-                padding: 20px 15px !important; /* Tighter padding for input area */
-            }
-            
+            .creator-main { padding: 20px 15px !important; }
             .creator-toolbox { height: 300px; }
-
             .modal-content, .modal-content.wide { width: 90%; max-height: 85vh; flex-direction: column; }
             .edit-card-left, .edit-card-right { width: 100%; }
             .scene { width: 100%; height: 350px; }
@@ -169,13 +149,7 @@
         .btn-danger { background: #ff7675; color: white; }
         .btn-secondary { background: #eee; color: #555; }
         
-        /* FIXED: Centered Action Buttons */
-        .btn-action-center {
-            display: block;
-            margin: 25px auto 0 auto; /* Top margin + Centered */
-            width: 100%;
-            max-width: 300px; /* Reasonable max width */
-        }
+        .btn-action-center { display: block; margin: 25px auto 0 auto; width: 100%; max-width: 300px; }
 
         .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
         .btn-trash-link { color: #636e72; font-size: 13px; }
@@ -215,8 +189,7 @@
         
         .trash-item { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;
-            border: 1px solid #eee;
+            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;
         }
         .trash-title { font-weight: 600; color: #444; font-size: 14px;}
         .trash-actions { display: flex; gap: 10px; }
@@ -231,12 +204,6 @@
         .settings-info h3 { margin: 0 0 5px 0; font-size: 16px; } .settings-info p { margin: 0; color: #888; font-size: 12px; }
         .settings-card button { width: auto; padding: 8px 15px; }
 
-        .creator-container { display: flex; gap: 20px; max-width: 1100px; margin: 0 auto; height: 85vh; }
-        .creator-main {
-            flex: 2; display: flex; flex-direction: column; gap: 15px;
-            background: rgba(255,255,255,0.6); backdrop-filter: blur(15px);
-            padding: 30px; border-radius: 24px; overflow-y: auto;
-        }
         .creator-toolbox {
             flex: 1; display: flex; flex-direction: column;
             background: white; border-radius: 24px; padding: 20px;
@@ -253,10 +220,8 @@
         .toolbox-draggable {
             padding: 12px; background: #fff; border: 1px solid #eee; 
             cursor: grab; transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
-            font-size: 13px; 
-            color: #333; position: relative;
-            font-weight: 700; user-select: none;
-            border-radius: 12px;
+            font-size: 13px; color: #333; position: relative;
+            font-weight: 700; user-select: none; border-radius: 12px;
         }
         .toolbox-draggable.deck { border-left: 4px solid var(--primary); background: #fffcfd; }
         .toolbox-draggable:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(253, 121, 168, 0.15); }
@@ -321,7 +286,10 @@
         .requirements-list li { margin-bottom: 8px; display: flex; gap: 10px; }
         .requirements-list li::before { content: "•"; color: var(--primary); font-weight: bold; font-size: 18px; line-height: 1; }
         
-        .smart-link { color: var(--link-color); font-weight: 700; cursor: pointer; border-bottom: 1px dashed rgba(162, 155, 254, 0.5); display: inline; transition: all 0.2s; }
+        .smart-link { 
+            color: var(--link-color); font-weight: 700; cursor: pointer; 
+            border-bottom: 1px dashed rgba(162, 155, 254, 0.5); display: inline; transition: all 0.2s; 
+        }
         .smart-link:hover { color: #fff; background: var(--link-color); border-radius: 4px; padding: 0 4px; border-bottom-color: transparent; }
         .ref-tooltip {
             visibility: hidden; opacity: 0; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%) translateY(10px);
@@ -349,6 +317,8 @@
         .edit-card-left { flex: 2; }
         .edit-card-right { flex: 1; background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid #eee; display: flex; flex-direction: column; }
         .deck-preview-list { font-family: var(--font-serif); line-height: 1.8; font-size: 16px; }
+
+        /* --- CONFIRM DELETE MODAL --- */
         #confirm-modal-content { width: 400px; text-align: center; padding: 30px; background: #2d3436; color: white; }
         #confirm-title { font-size: 22px; font-weight: 700; color: white; margin-bottom: 15px; }
         #confirm-msg { color: #bbb; margin-bottom: 30px; font-size: 15px; }
@@ -368,12 +338,7 @@
 
     <div id="notification-area"></div>
 
-    <!-- MOBILE MENU BUTTON -->
-    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
-    <!-- MOBILE OVERLAY -->
-    <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
-
-    <!-- DELETE MODAL -->
+    <!-- DELETE MODAL (Initially Hidden) -->
     <div class="modal-overlay" id="confirm-modal" style="display: none;">
         <div class="modal-content" id="confirm-modal-content">
             <div id="confirm-title">Are you sure?</div>
@@ -467,8 +432,16 @@
         <div id="view-settings" class="view-section">
             <h2>Settings & Backup</h2>
             <p style="color:#666; margin-bottom:30px;">Manage your data securely.</p>
-            <div class="settings-card"><div class="settings-info"><h3>Export Data</h3><p>Backup all decks and resources.</p></div><button class="btn btn-primary" onclick="exportData()">📥 Export</button></div>
-            <div class="settings-card"><div class="settings-info"><h3>Import Data</h3><p>Restore from backup (merges data).</p></div><button class="btn btn-secondary" onclick="triggerImport()">📤 Import</button><input type="file" id="import-file-input" accept=".json" onchange="importData(this)"></div>
+            
+            <div class="settings-card">
+                <div class="settings-info"><h3>Export Data</h3><p>Backup all decks and resources.</p></div>
+                <button class="btn btn-primary" onclick="exportData()">📥 Export</button>
+            </div>
+            <div class="settings-card">
+                <div class="settings-info"><h3>Import Data</h3><p>Restore from backup (merges data).</p></div>
+                <button class="btn btn-secondary" onclick="triggerImport()">📤 Import</button>
+                <input type="file" id="import-file-input" accept=".json" onchange="importData(this)">
+            </div>
         </div>
 
     </div>
@@ -536,6 +509,7 @@
             if(viewId === 'toolbox') renderToolbox('story');
             if(viewId === 'create') renderToolboxPicker();
             if(viewId === 'trash') renderTrash();
+            // Settings is static
         }
 
         function showToast(msg, type='success') {
@@ -545,26 +519,64 @@
             c.appendChild(t); setTimeout(() => { t.remove(); }, 3500);
         }
 
-        /* --- BACKUP SYSTEM --- */
+        /* --- SMART IMPORT: DEDUPLICATION LOGIC --- */
         function exportData() {
             const data = { decks, resources, trash: trashBin, date: new Date().toLocaleString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `0804_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            const a = document.createElement('a'); a.href = url; a.download = `0804_Backup_${new Date().toISOString().slice(0,10)}.json`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
             showToast("Backup downloaded!");
         }
         function triggerImport() { document.getElementById('import-file-input').click(); }
+        
         function importData(input) {
             const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
-                try { const imported = JSON.parse(e.target.result);
-                    if (imported.decks) { decks = [...decks, ...imported.decks]; resources = [...resources, ...imported.resources]; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); if(imported.trash) { trashBin = [...trashBin, ...imported.trash]; localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); } showToast("Data restored successfully!"); renderDashboard(currentDashboardTab); }
-                } catch (err) { showToast("Error parsing file", "error"); }
-            }; reader.readAsText(file); input.value = '';
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    // 1. Decks Deduplication
+                    const currentDeckIds = new Set(decks.map(d => d.id));
+                    const newDecks = (imported.decks || []).filter(d => !currentDeckIds.has(d.id));
+                    decks = [...decks, ...newDecks];
+
+                    // 2. Resources Deduplication
+                    const currentResIds = new Set(resources.map(r => r.id));
+                    const newResources = (imported.resources || []).filter(r => !currentResIds.has(r.id));
+                    resources = [...resources, ...newResources];
+
+                    // 3. Trash Deduplication
+                    let newTrashCount = 0;
+                    if (imported.trash) {
+                        const currentTrashIds = new Set(trashBin.map(t => t.id));
+                        const newTrash = imported.trash.filter(t => !currentTrashIds.has(t.id));
+                        trashBin = [...trashBin, ...newTrash];
+                        newTrashCount = newTrash.length;
+                    }
+
+                    // 4. Save All
+                    localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
+                    localStorage.setItem('0804_v4_resources', JSON.stringify(resources));
+                    localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin));
+
+                    // 5. Feedback
+                    const totalNew = newDecks.length + newResources.length + newTrashCount;
+                    if (totalNew === 0) {
+                        showToast("No new data found. All items were duplicates.", "error");
+                    } else {
+                        showToast(`Success! Imported ${newDecks.length} decks and ${newResources.length} materials.`);
+                        renderDashboard(currentDashboardTab);
+                    }
+
+                } catch (err) { 
+                    showToast("Error parsing file", "error"); 
+                }
+            }; 
+            reader.readAsText(file); input.value = '';
         }
+
 
         /* --- DASHBOARD --- */
         function renderDashboard(tabName = 'Speaking') {
@@ -692,16 +704,7 @@
         function bundleSelectedItems() { const sel=sorterItems.filter(i=>i.selected); if(!sel.length) return showToast("Select items","error"); const cat=document.getElementById('sorter-category-name').value.trim(); if(!cat) return showToast("Enter Category Name","error"); sel.forEach(i=>{ let t=i.text, c=i.text, m=i.text.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=i.text.split(/[:：]/); if(p.length>1) t=p[0].trim(); } resources.push({id:Date.now()+Math.random(),title:t,content:c,type:'vocab'}); }); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); const nc={id:Date.now(), frontTitle:cat, frontBullets:[], backContent:sel.map(i=>{ let t=i.text, m=t.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=t.split(/[:：]/); if(p.length>1) t=p[0].trim(); } return `• [${t}]`; }).join('\n')}; let di=decks.findIndex(d=>d.title===cat); if(di===-1) decks.push({id:Date.now(),title:cat,category:'Vocabulary',cards:[nc]}); else decks[di].cards.push(nc); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); showToast(`Bundled into "${cat}"!`); sorterItems=sorterItems.filter(i=>!i.selected); renderSorterList(); document.getElementById('sorter-category-name').value=""; }
         function resetSorter() { sorterItems=[]; document.getElementById('sorter-step-1').style.display='block'; document.getElementById('sorter-step-2').style.display='none'; document.getElementById('sorter-raw-input').value=""; }
         function renderToolbox(t) { const c=document.getElementById('resource-list'); c.innerHTML=''; document.querySelectorAll('.toolbox-tabs .tab-btn').forEach(b=>b.classList.remove('active')); if(t==='story')document.getElementById('tab-btn-story').classList.add('active'); if(t==='vocab')document.getElementById('tab-btn-vocab').classList.add('active'); const f=resources.filter(r=>(t?(r.type||'story')===t:true)); if(!f.length){c.innerHTML='<p style="color:#999">Empty</p>';return;} f.forEach(r=>{ const el=document.createElement('div'); el.className='card-item'; const i=r.type==='vocab'?'💡':'📝'; el.innerHTML=`<button class="item-action-btn btn-delete-item" onclick="deleteResource(${r.id},event)">×</button><button class="item-action-btn btn-edit-item" onclick="openEditResourceModal(${r.id},event)">✎</button><span style="font-size:12px;color:#999">${i} ${r.type==='vocab'?'Vocab':'Story'}</span><h3 style="margin:5px 0">${r.title}</h3><p style="font-size:12px;color:#666">${r.content.substring(0,50)}...</p>`; el.onclick=()=>openModal(r.title,r.content); c.appendChild(el); }); }
-        function processDeck() { 
-            const fr=document.getElementById('card-front-input').value; 
-            const br=document.getElementById('card-back-input').value; 
-            const ti=document.getElementById('deck-title').value||"Untitled"; 
-            const cat=document.getElementById('deck-category').value; 
-            if(!fr.trim()){ 
-                document.getElementById('card-front-input').style.borderColor="#ff7675"; 
-                showToast("Prompt is empty!", "error"); return; 
-            }
-            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒！❤️"); }
+        function processDeck() { const fr=document.getElementById('card-front-input').value, br=document.getElementById('card-back-input').value, ti=document.getElementById('deck-title').value||"Untitled", cat=document.getElementById('deck-category').value; if(!fr.trim()){document.getElementById('card-front-input').style.borderColor="#ff7675"; showToast("Prompt is empty!", "error"); return;} const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒！❤️"); }
         function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
         function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦！😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
