@@ -683,7 +683,25 @@
         function openEditDeckModal(id, e) { e.stopPropagation(); currentEditingDeckId=id; const d=decks.find(x=>x.id===id); if(d){ document.getElementById('edit-deck-name').value=d.title; document.getElementById('edit-deck-cat').value=d.category||'Speaking Part 2'; document.getElementById('edit-deck-modal').style.display='flex'; } }
         function saveDeckEdits() { const d=decks.find(x=>x.id===currentEditingDeckId); if(d){ d.title=document.getElementById('edit-deck-name').value; d.category=document.getElementById('edit-deck-cat').value; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); closeModal('edit-deck-modal'); showToast("Updated!"); } }
         function toggleImportMode() { const m=document.getElementById('res-type-select').value; document.getElementById('import-single').style.display=m==='story'?'block':'none'; document.getElementById('import-sorter').style.display=m==='sorter'?'block':'none'; }
+
+        /* ✅ 正确的保存素材（Add Material） */
         function saveResource() { 
+            const t = document.getElementById('res-title').value.trim();
+            const c = document.getElementById('res-content').value;
+            if (!t) {
+                showToast("Title needed","error");
+                return;
+            }
+            resources.push({id: Date.now(), title: t, content: c, type: 'story'});
+            localStorage.setItem('0804_v4_resources', JSON.stringify(resources));
+            showToast("Saved");
+            document.getElementById('res-title').value = "";
+            document.getElementById('res-content').value = "";
+            navTo('toolbox');
+        }
+
+        /* ✅ 生成卡片（Create Flashcard 的按钮调用这个） */
+        function processDeck() { 
             const fr=document.getElementById('card-front-input').value; 
             const br=document.getElementById('card-back-input').value; 
             const ti=document.getElementById('deck-title').value||"Untitled"; 
@@ -692,7 +710,27 @@
                 document.getElementById('card-front-input').style.borderColor="#ff7675"; 
                 showToast("Prompt is empty!", "error"); return; 
             }
-            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒! ❤️"); }
+            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; 
+            l.forEach(x=>{ 
+                if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} 
+                if(!sp) tl.push(x.trim()); 
+                else { 
+                    let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); 
+                    if(c) bl.push(c); 
+                } 
+            }); 
+            let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); 
+            if(!sp&&l.length>1) bl=l; 
+            const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; 
+            const idx=decks.findIndex(d=>d.title===ti); 
+            if(idx>-1) decks[idx].cards.push(nc); 
+            else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); 
+            localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); 
+            document.getElementById('card-front-input').value=""; 
+            document.getElementById('card-back-input').value=""; 
+            showToast("宝宝真棒! ❤️"); 
+        }
+
         function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
         function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦! 😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
