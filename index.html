@@ -129,18 +129,34 @@
             }
             .sidebar.active { transform: translateX(0); }
 
-            /* MOBILE: Compact Padding */
+            /* MOBILE: Reset Layout Flow */
+            body { overflow: auto; } /* Let body scroll */
             .main-content {
                 width: 100%;
                 padding: 20px 20px; 
                 padding-top: 80px;
+                overflow: visible !important; /* IMPORTANT: Fix Touch Issues */
+                height: auto !important;
             }
 
-            /* MOBILE: Full Width Inputs */
-            .creator-main, .settings-card {
+            /* MOBILE: Reset Containers */
+            .creator-main, .creator-toolbox, .settings-card {
                 padding: 20px !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                overflow: visible !important; /* Fix Touch */
+                height: auto !important; /* Fix Height */
+                flex: none !important; /* Disable Flex Stretch */
+            }
+            
+            .creator-container {
+                gap: 35px !important; /* Increase gap between sections */
+            }
+
+            /* MOBILE: Boost Button Z-Index */
+            .btn, .tab-btn {
+                position: relative;
+                z-index: 50; /* Ensure clickable */
             }
 
             /* MOBILE STUDY FIXES */
@@ -174,7 +190,6 @@
             
             .grid-list { grid-template-columns: 1fr; } 
             .creator-container { flex-direction: column; height: auto; }
-            .creator-toolbox { height: 300px; }
             .modal-content, .modal-content.wide { width: 90%; max-height: 85vh; flex-direction: column; }
             .edit-card-left, .edit-card-right { width: 100%; }
         }
@@ -524,7 +539,7 @@
     </div>
 
     <div class="modal-overlay" id="res-modal" style="display:none;" onclick="closeModal('res-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('res-modal')">✕</button><h2 id="modal-title" style="color: var(--primary-dark); font-family: var(--font-serif);">Title</h2><div id="modal-body" class="deck-preview-list" style="color: #444; white-space: pre-wrap;"></div></div></div>
-    <div class="modal-overlay" id="edit-card-modal" style="display:none;" onclick="closeModal('edit-card-modal')"><div class="modal-content wide" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-card-modal')">✕</button><div class="edit-card-left"><h2 style="color: var(--primary-dark); margin-bottom: 20px;">Edit Card</h2><label class="label-text">FRONT TITLE</label><input type="text" id="edit-front-title" style="margin-bottom: 15px;"><label class="label-text">BULLETS</label><textarea id="edit-front-bullets" style="height: 100px; margin-bottom: 15px;"></textarea><label class="label-text">BACK CONTENT</label><textarea id="edit-back-content" style="height: 200px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveCardEdits()">💾 Save Changes</button></div><div class="edit-card-right"><h3 style="font-size: 14px; margin-top: 0; color: #888;">Add Reference</h3><div class="toolbox-tabs"><button class="tab-btn active" id="edit-picker-story" onclick="setEditPickerTab('story')">Story</button><button class="tab-btn" id="edit-picker-deck" onclick="setEditPickerTab('deck')">Decks</button><button class="tab-btn" id="edit-picker-vocab" onclick="setEditPickerTab('vocab')">Vocab</button></div><input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search..." onkeyup="renderEditPicker()"><div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div><p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p></div></div></div>
+    <div class="modal-overlay" id="edit-card-modal" style="display:none;" onclick="closeModal('edit-card-modal')"><div class="modal-content wide" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-card-modal')">✕</button><div class="edit-card-left"><h2 style="color: var(--primary-dark); margin-bottom: 20px;">Edit Card</h2><label class="label-text">FRONT TITLE</label><input type="text" id="edit-front-title" style="margin-bottom: 15px;"><label class="label-text">FRONT REQS</label><textarea id="edit-front-bullets" style="height: 100px; margin-bottom: 15px;"></textarea><label class="label-text">BACK CONTENT</label><textarea id="edit-back-content" style="height: 200px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveCardEdits()">💾 Save Changes</button></div><div class="edit-card-right"><h3 style="font-size: 14px; margin-top: 0; color: #888;">Add Reference</h3><div class="toolbox-tabs"><button class="tab-btn active" id="edit-picker-story" onclick="setEditPickerTab('story')">Story</button><button class="tab-btn" id="edit-picker-deck" onclick="setEditPickerTab('deck')">Decks</button><button class="tab-btn" id="edit-picker-vocab" onclick="setEditPickerTab('vocab')">Vocab</button></div><input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search..." onkeyup="renderEditPicker()"><div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div><p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p></div></div></div>
     <div class="modal-overlay" id="edit-resource-modal" style="display:none;" onclick="closeModal('edit-resource-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-resource-modal')">✕</button><h2>Edit Material</h2><label class="label-text">TITLE</label><input type="text" id="edit-res-title" style="margin-bottom: 15px;"><label class="label-text">CONTENT</label><textarea id="edit-res-content" style="height: 250px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveResourceEdits()">💾 Save Changes</button></div></div>
     <div class="modal-overlay" id="edit-deck-modal" style="display:none;" onclick="closeModal('edit-deck-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-deck-modal')">✕</button><h2>Edit Collection</h2><label class="label-text">DECK NAME</label><input type="text" id="edit-deck-name" style="margin-bottom: 15px;"><label class="label-text">CATEGORY</label><select id="edit-deck-cat" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 20px;"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select><button class="btn btn-primary" onclick="saveDeckEdits()">💾 Update Collection</button></div></div>
 
