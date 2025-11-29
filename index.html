@@ -44,12 +44,18 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 独立背景层 */
+        /* 独立背景层 - 层级最低 */
         #app-background {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-grad);
             z-index: -100; pointer-events: none;
+        }
+
+        /* 🟢 关键修复：全局提升交互元素层级 (Desktop & Mobile) */
+        .btn, .tab-btn, input, textarea, select, .card-item, .item-action-btn {
+            position: relative;
+            z-index: 50; /* 强制在最上层，确保可点击 */
         }
 
         /* --- SCROLLBAR --- */
@@ -121,9 +127,10 @@
             padding: 60px;
             overflow-y: auto;
             position: relative;
+            z-index: 1; /* 确保内容层在背景之上 */
         }
 
-        /* --- MODALS (全局修复) --- */
+        /* --- MODALS (GLOBAL) --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; 
             width: 100vw; height: 100vh; 
@@ -131,26 +138,19 @@
             backdrop-filter: blur(5px); 
             z-index: 9999 !important; 
             display: none; 
-            
-            /* 🟢 核心修复：使用 Flexbox 居中，不再依赖 position */
-            align-items: center;
-            justify-content: center;
+            align-items: center; justify-content: center;
         }
-        
         .modal-content { 
             background: white; 
             width: 600px; max-height: 80vh; 
             border-radius: 20px; padding: 40px; 
             overflow-y: auto; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
-            position: relative; 
-            /* 动画现在安全了，因为我们不再使用 transform 居中 */
-            animation: popIn 0.3s ease; 
+            position: relative; animation: popIn 0.3s ease; 
         }
-        
         .modal-content.wide { width: 900px; display: flex; gap: 20px; }
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; z-index: 100; }
 
         /* --- 📱 MOBILE FIXES --- */
         @media (max-width: 768px) {
@@ -179,11 +179,7 @@
                 padding-top: 80px;
                 overflow: visible !important; 
                 height: auto !important;
-                position: relative;
-                z-index: 1;
             }
-
-            .btn, .tab-btn, input, textarea, select, .card-item { position: relative; z-index: 50; }
 
             .creator-main, .creator-toolbox, .settings-card {
                 backdrop-filter: none !important; 
@@ -210,23 +206,17 @@
             .creator-container { flex-direction: column; height: auto; }
             .edit-card-left, .edit-card-right { width: 100%; }
 
-            /* 🟢 手机端弹窗修正 */
-            .modal-overlay {
-                /* 稍微把内容顶上去一点，实现“视觉居中” */
-                padding-bottom: 20vh; 
-            }
-            
+            /* 弹窗视觉修正 */
             .modal-content, .modal-content.wide { 
                 width: 85vw !important; 
                 max-width: 320px !important; 
                 max-height: 70vh !important; 
                 flex-direction: column;
                 margin: 0 !important;
-                
-                /* 移除所有 transform 定位，完全依赖 Flex */
                 position: relative !important;
                 left: auto !important; top: auto !important; transform: none !important;
             }
+            .modal-overlay { padding-bottom: 20vh; }
         }
 
         /* --- COMPONENTS --- */
@@ -238,7 +228,6 @@
             padding: 12px 15px; border-radius: 12px; border: none;
             font-weight: 600; cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; 
-            position: relative; z-index: 10; 
         }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4); }
         .btn-ghost { background: transparent; color: #555; justify-content: flex-start;}
@@ -272,13 +261,13 @@
             background: var(--glass); backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.6);
             border-radius: 16px; padding: 20px; cursor: pointer;
-            transition: all 0.3s; position: relative; z-index: 10; 
+            transition: all 0.3s; position: relative; 
         }
         
         .item-action-btn {
             position: absolute; top: 10px; width: 24px; height: 24px; border-radius: 50%;
             border: none; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; cursor: pointer; opacity: 0; transition: all 0.2s; z-index: 20; 
+            font-weight: bold; cursor: pointer; opacity: 0; transition: all 0.2s;
         }
         .card-item:hover .item-action-btn { opacity: 1; }
         .btn-delete-item { right: 10px; background: #ff7675; color: white; }
@@ -320,7 +309,6 @@
         .tab-btn { 
             flex: 1; padding: 8px 5px; border: none; background: none; font-weight: 700; color: #999; cursor: pointer; 
             font-size: 12px; border-radius: 8px; transition: all 0.2s;
-            position: relative; z-index: 10; 
         }
         .tab-btn.active { background: var(--primary); color: white; }
 
@@ -332,7 +320,6 @@
             cursor: grab; transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
             font-size: 13px; color: #333; position: relative;
             font-weight: 700; user-select: none; border-radius: 12px;
-            z-index: 10; 
         }
         .toolbox-draggable.deck { border-left: 4px solid var(--primary); background: #fffcfd; }
         .toolbox-draggable:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(253, 121, 168, 0.15); }
@@ -343,7 +330,6 @@
             border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);
             font-family: inherit; font-size: 14px;
             margin-bottom: 10px; 
-            position: relative; z-index: 10; 
         }
         input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.1); }
 
