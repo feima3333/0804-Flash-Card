@@ -35,13 +35,23 @@
         body {
             margin: 0; padding: 0;
             font-family: var(--font-main);
-            background: var(--bg-grad);
+            /* 背景移除了，交给 #app-background 处理 */
+            background: transparent; 
             height: 100vh;
             color: var(--text-main);
             overflow: hidden;
             display: flex;
             padding-top: env(safe-area-inset-top); 
             padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* 🟢 修复1：独立的背景层，解决 iOS 色差横线问题 */
+        #app-background {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-grad);
+            z-index: -100; /* 永远在最底层 */
+            pointer-events: none;
         }
 
         /* --- SCROLLBAR --- */
@@ -52,7 +62,7 @@
 
         /* --- NOTIFICATIONS --- */
         #notification-area {
-            position: fixed; top: calc(20px + env(safe-area-inset-top)); right: 20px; z-index: 5000;
+            position: fixed; top: calc(20px + env(safe-area-inset-top)); right: 20px; z-index: 6000;
             display: flex; flex-direction: column; gap: 10px; pointer-events: none;
         }
         .toast {
@@ -92,9 +102,9 @@
             background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
             z-index: 1900; 
             display: none; opacity: 0; transition: opacity 0.3s;
-            pointer-events: none; /* Default to pass-through */
+            pointer-events: none; 
         }
-        .mobile-overlay.active { display: block; opacity: 1; pointer-events: auto; /* Catch clicks when active */ }
+        .mobile-overlay.active { display: block; opacity: 1; pointer-events: auto; }
 
         /* --- LAYOUT --- */
         .sidebar {
@@ -110,16 +120,16 @@
 
         .main-content {
             flex: 1;
-            padding: 60px; /* Optimized Desktop Padding */
+            padding: 60px; /* Desktop Padding */
             overflow-y: auto;
             position: relative;
         }
 
-        /* --- 📱 MOBILE FIXES (CORE FIX) --- */
+        /* --- 📱 MOBILE FIXES --- */
         @media (max-width: 768px) {
             .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
 
-            /* 1. 解锁滚动，解决 iOS 触摸冲突 */
+            /* iOS Scroll Fix */
             html, body {
                 height: auto !important;
                 overflow-y: auto !important;
@@ -134,12 +144,11 @@
                 box-shadow: 5px 0 25px rgba(0,0,0,0.1);
                 transform: translateX(-100%);
                 padding-top: calc(60px + env(safe-area-inset-top));
-                /* 2. 关键修复：隐藏时变成空气，不挡点击 */
                 pointer-events: none; 
             }
             .sidebar.active { 
                 transform: translateX(0); 
-                pointer-events: auto; /* 显示时恢复点击 */
+                pointer-events: auto; 
             }
 
             .main-content {
@@ -148,13 +157,16 @@
                 padding-top: 80px;
                 overflow: visible !important; 
                 height: auto !important;
-                /* 3. 提升主内容层级 */
                 position: relative;
                 z-index: 1;
             }
 
-            /* 移除可能导致性能问题的滤镜 */
-            .creator-main, .creator-toolbox, .settings-card, .card-item {
+            .btn, .tab-btn, input, textarea, select, .card-item {
+                position: relative;
+                z-index: 50; 
+            }
+
+            .creator-main, .creator-toolbox, .settings-card {
                 backdrop-filter: none !important; 
                 padding: 20px !important;
                 width: 100% !important;
@@ -164,11 +176,8 @@
                 flex: none !important;
             }
             
-            .creator-container {
-                gap: 35px !important; 
-            }
+            .creator-container { gap: 35px !important; }
 
-            /* STUDY MODE MOBILE */
             .study-container {
                 height: 100% !important;
                 min-height: 80vh;
@@ -200,8 +209,28 @@
             
             .grid-list { grid-template-columns: 1fr; } 
             .creator-container { flex-direction: column; height: auto; }
-            .modal-content, .modal-content.wide { width: 90%; max-height: 85vh; flex-direction: column; }
             .edit-card-left, .edit-card-right { width: 100%; }
+
+            /* 🟢 修复2：弹窗居中 (回归弹性布局) */
+            .modal-overlay {
+                z-index: 9999 !important; /* 确保最高层级 */
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .modal-content, .modal-content.wide { 
+                width: 85% !important; 
+                max-width: 320px !important; 
+                max-height: 70vh !important; 
+                flex-direction: column;
+                
+                /* 移除所有 fixed 定位，靠 overlay 居中 */
+                position: relative !important;
+                transform: none !important;
+                left: auto !important; 
+                top: auto !important;
+                margin: 0 auto !important; 
+            }
         }
 
         /* --- COMPONENTS --- */
@@ -277,10 +306,10 @@
         .settings-info h3 { margin: 0 0 5px 0; font-size: 16px; } .settings-info p { margin: 0; color: #888; font-size: 12px; }
         .settings-card button { width: auto; padding: 8px 15px; }
 
-        /* --- 🟡 DESKTOP LAYOUT OPTIMIZATION --- */
+        /* --- DESKTOP LAYOUT --- */
         .creator-container { display: flex; gap: 25px; max-width: 1100px; margin: 0 auto; height: 85vh; }
         .creator-main {
-            flex: 3; /* Wider Input Area */
+            flex: 3; 
             display: flex; flex-direction: column; gap: 25px; 
             background: rgba(255,255,255,0.6); backdrop-filter: blur(15px);
             padding: 30px; border-radius: 24px; overflow-y: auto;
@@ -317,7 +346,7 @@
             width: 100%; padding: 15px; border-radius: 12px;
             border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);
             font-family: inherit; font-size: 14px;
-            margin-bottom: 10px; /* Added Spacing */
+            margin-bottom: 10px; 
             position: relative; z-index: 10; 
         }
         input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.1); }
@@ -400,6 +429,8 @@
     </style>
 </head>
 <body>
+
+    <div id="app-background"></div>
 
     <div id="notification-area"></div>
 
@@ -517,12 +548,14 @@
         let sorterItems = []; let pendingDeleteAction = null;
         let currentDashboardTab = 'Speaking';
 
-        const loveNotes = ["宝宝背单词辛苦啦! 奖励一个抱抱 🤗", 
-                           "雅思必过! 🦆💯",
-                           "纽约今天很冷, 但想到你就很暖.☀", 
-                           "记得喝水, 记得想我 💧❤", 
-                           "0804 是宇宙最浪漫的坐标 🪐", 
-                           "小幸运和我都陪着宝宝 ❤"];
+        const loveNotes = [
+            "宝宝背单词辛苦啦! 奖励一个抱抱 🤗", 
+            "雅思必过! 🦆💯",
+            "纽约今天很冷, 但想到你就很暖.☀", 
+            "记得喝水, 记得想我 💧❤", 
+            "0804 是宇宙最浪漫的坐标 🪐", 
+            "小幸运和我都陪着宝宝 ❤"
+        ];
 
         function showLoveNote() {
             const note = loveNotes[Math.floor(Math.random() * loveNotes.length)];
@@ -658,13 +691,16 @@
         function openEditDeckModal(id, e) { e.stopPropagation(); currentEditingDeckId=id; const d=decks.find(x=>x.id===id); if(d){ document.getElementById('edit-deck-name').value=d.title; document.getElementById('edit-deck-cat').value=d.category||'Speaking Part 2'; document.getElementById('edit-deck-modal').style.display='flex'; } }
         function saveDeckEdits() { const d=decks.find(x=>x.id===currentEditingDeckId); if(d){ d.title=document.getElementById('edit-deck-name').value; d.category=document.getElementById('edit-deck-cat').value; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); closeModal('edit-deck-modal'); showToast("Updated!"); } }
         function toggleImportMode() { const m=document.getElementById('res-type-select').value; document.getElementById('import-single').style.display=m==='story'?'block':'none'; document.getElementById('import-sorter').style.display=m==='sorter'?'block':'none'; }
-        function saveResource() { const t=document.getElementById('res-title').value.trim(), c=document.getElementById('res-content').value; if(!t) return showToast("Title needed","error"); resources.push({id:Date.now(),title:t,content:c,type:'story'}); localStorage.setItem('0804_v4_resources',JSON.stringify(resources)); showToast("Saved"); document.getElementById('res-title').value=""; document.getElementById('res-content').value=""; navTo('toolbox'); }
-        function parseRawNotes() { const r=document.getElementById('sorter-raw-input').value; if(!r.trim()) return showToast("Paste content","error"); sorterItems=[]; r.split(/\n+/).forEach(l=>{ let c=l.trim().replace(/^[•♦\-\*]+\s*/,'').replace(/^\d+\.\s*/,''); if(c.length>1) sorterItems.push({text:c,selected:false,id:Date.now()+Math.random()}); }); renderSorterList(); document.getElementById('sorter-step-1').style.display='none'; document.getElementById('sorter-step-2').style.display='block'; }
-        function renderSorterList() { const c=document.getElementById('sorter-results-list'); c.innerHTML=''; sorterItems.forEach(i=>{ const el=document.createElement('div'); el.className=`sorter-item ${i.selected?'selected':''}`; el.onclick=()=>{i.selected=!i.selected;renderSorterList();}; el.innerHTML=`<div class="sorter-checkbox">${i.selected?'✓':''}</div><div style="font-size:14px;">${i.text}</div>`; c.appendChild(el); }); }
-        function bundleSelectedItems() { const sel=sorterItems.filter(i=>i.selected); if(!sel.length) return showToast("Select items","error"); const cat=document.getElementById('sorter-category-name').value.trim(); if(!cat) return showToast("Enter Category Name","error"); sel.forEach(i=>{ let t=i.text, c=i.text, m=i.text.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=i.text.split(/[:：]/); if(p.length>1) t=p[0].trim(); } resources.push({id:Date.now()+Math.random(),title:t,content:c,type:'vocab'}); }); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); const nc={id:Date.now(), frontTitle:cat, frontBullets:[], backContent:sel.map(i=>{ let t=i.text, m=t.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=t.split(/[:：]/); if(p.length>1) t=p[0].trim(); } return `• [${t}]`; }).join('\n')}; let di=decks.findIndex(d=>d.title===cat); if(di===-1) decks.push({id:Date.now(),title:cat,category:'Vocabulary',cards:[nc]}); else decks[di].cards.push(nc); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); showToast(`Bundled into "${cat}"!`); sorterItems=sorterItems.filter(i=>!i.selected); renderSorterList(); document.getElementById('sorter-category-name').value=""; }
-        function resetSorter() { sorterItems=[]; document.getElementById('sorter-step-1').style.display='block'; document.getElementById('sorter-step-2').style.display='none'; document.getElementById('sorter-raw-input').value=""; }
-        function renderToolbox(t) { const c=document.getElementById('resource-list'); c.innerHTML=''; document.querySelectorAll('.toolbox-tabs .tab-btn').forEach(b=>b.classList.remove('active')); if(t==='story')document.getElementById('tab-btn-story').classList.add('active'); if(t==='vocab')document.getElementById('tab-btn-vocab').classList.add('active'); const f=resources.filter(r=>(t?(r.type||'story')===t:true)); if(!f.length){c.innerHTML='<p style="color:#999">Empty</p>';return;} f.forEach(r=>{ const el=document.createElement('div'); el.className='card-item'; const i=r.type==='vocab'?'💡':'📝'; el.innerHTML=`<button class="item-action-btn btn-delete-item" onclick="deleteResource(${r.id},event)">×</button><button class="item-action-btn btn-edit-item" onclick="openEditResourceModal(${r.id},event)">✎</button><span style="font-size:12px;color:#999">${i} ${r.type==='vocab'?'Vocab':'Story'}</span><h3 style="margin:5px 0">${r.title}</h3><p style="font-size:12px;color:#666">${r.content.substring(0,50)}...</p>`; el.onclick=()=>openModal(r.title,r.content); c.appendChild(el); }); }
-        function processDeck() { const fr=document.getElementById('card-front-input').value, br=document.getElementById('card-back-input').value, ti=document.getElementById('deck-title').value||"Untitled", cat=document.getElementById('deck-category').value; if(!fr.trim()){showToast("Prompt needed","error");return;} const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒! ❤️"); }
+        function saveResource() { 
+            const fr=document.getElementById('card-front-input').value; 
+            const br=document.getElementById('card-back-input').value; 
+            const ti=document.getElementById('deck-title').value||"Untitled"; 
+            const cat=document.getElementById('deck-category').value; 
+            if(!fr.trim()){ 
+                document.getElementById('card-front-input').style.borderColor="#ff7675"; 
+                showToast("Prompt is empty!", "error"); return; 
+            }
+            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒! ❤️"); }
         function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
         function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦! 😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
