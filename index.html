@@ -36,26 +36,23 @@
         body {
             margin: 0; padding: 0;
             font-family: var(--font-main);
-            color: var(--text-main);
-            /* 关键：min-height 而不是 height，允许生长 */
+            background: transparent; 
             min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            /* 关键：允许滚动 */
+            color: var(--text-main);
             overflow-x: hidden;
             overflow-y: auto;
+            display: flex;
             padding-top: env(safe-area-inset-top); 
             padding-bottom: env(safe-area-inset-bottom);
             position: relative;
         }
 
-        /* 🟢 独立背景层 (Fixed) */
-        body::before {
-            content: "";
+        /* 独立背景层 */
+        #app-background {
             position: fixed;
-            inset: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-grad);
-            z-index: -1;
+            z-index: -100; pointer-events: none;
         }
 
         /* --- SCROLLBAR --- */
@@ -66,7 +63,7 @@
 
         /* --- NOTIFICATIONS --- */
         #notification-area {
-            position: fixed; top: calc(20px + env(safe-area-inset-top)); right: 20px; z-index: 9999;
+            position: fixed; top: calc(20px + env(safe-area-inset-top)); right: 20px; z-index: 6000;
             display: flex; flex-direction: column; gap: 10px; pointer-events: none;
         }
         .toast {
@@ -223,7 +220,8 @@
             padding: 12px; background: #fff; border: 1px solid #eee; 
             cursor: grab; transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
             font-size: 13px; color: #333; position: relative;
-            font-weight: 700; user-select: none; border-radius: 12px; z-index: 20;
+            font-weight: 700; user-select: none; border-radius: 12px;
+            z-index: 20; 
         }
         .toolbox-draggable.deck { border-left: 4px solid var(--primary); background: #fffcfd; }
         .toolbox-draggable:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(253, 121, 168, 0.15); }
@@ -231,12 +229,13 @@
         input, select, textarea {
             width: 100%; padding: 15px; border-radius: 12px;
             border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);
-            font-family: inherit; font-size: 14px; margin-bottom: 10px; position: relative; z-index: 20;
+            font-family: inherit; font-size: 14px;
+            margin-bottom: 10px; position: relative; z-index: 20; 
         }
         input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.1); }
 
         /* --- STUDY MODE --- */
-        .study-container { display: flex; align-items: center; justify-content: center; min-height: 60vh; width: 100%; position: relative; z-index: 10; }
+        .study-container { display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; position: relative; z-index: 10; }
         .study-content-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; }
         .scene { width: 650px; height: 450px; perspective: 1000px; margin-bottom: 30px; position: relative; z-index: 20; }
         .card { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: default; }
@@ -254,11 +253,17 @@
             overflow-y: auto; text-align: left; font-family: var(--font-serif);
         }
         #card-back-content { width: 100%; font-size: 18px; line-height: 1.8; color: #ecf0f1; }
+
         .flashcard-list { list-style: none; padding: 0; margin: 0; }
         .flashcard-list li { margin-bottom: 15px; display: flex; align-items: baseline; gap: 10px; }
         .flashcard-list li::before { content: "•"; color: var(--primary); font-weight: bold; font-size: 20px; }
 
-        .deck-badge { position: absolute; top: 30px; background: rgba(0,0,0,0.05); color: #888; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .deck-badge {
+            position: absolute; top: 30px;
+            background: rgba(0,0,0,0.05); color: #888;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        }
         .card-face.back .deck-badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
 
         .topic-title { font-family: var(--font-serif); font-size: 32px; font-weight: 700; margin-bottom: 30px; color: var(--primary-dark); line-height: 1.3; max-width: 90%; margin-top: 20px; }
@@ -273,7 +278,7 @@
         
         .smart-link { color: var(--link-color); font-weight: 700; cursor: pointer; border-bottom: 1px dashed rgba(162, 155, 254, 0.5); display: inline; transition: all 0.2s; position: relative; z-index: 30;}
         .smart-link:hover { color: #fff; background: var(--link-color); border-radius: 4px; padding: 0 4px; border-bottom-color: transparent; }
-
+        
         .controls { display: flex; gap: 30px; position: relative; z-index: 50; margin-top: 20px; justify-content: center; }
         .control-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         .control-btn:hover { transform: scale(1.1); }
@@ -283,18 +288,39 @@
         .btn-edit { position: absolute; left: -80px; top: 10px; width: 40px; height: 40px; font-size: 16px; color: #a29bfe; border: 1px solid #a29bfe; }
 
         /* --- MODALS --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(245,245,245,0.8); backdrop-filter: blur(5px); z-index: 9999 !important; display: none; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 600px; max-width: 100%; max-height: min(80vh, 80dvh); border-radius: 20px; padding: 40px; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.15); position: relative; animation: popIn 0.3s ease; z-index: 2100; }
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; 
+            width: 100vw; height: 100vh; height: 100dvh;
+            background: rgba(245,245,245,0.8); 
+            backdrop-filter: blur(5px); 
+            z-index: 9999 !important; 
+            display: none; 
+            align-items: center; justify-content: center;
+            pointer-events: none; /* 默认不拦截，显示时 JS 需设为 auto */
+        }
+        .modal-overlay[style*="flex"] { pointer-events: auto; } /* 修正：显示时允许点击 */
+
+        .modal-content { 
+            background: white; 
+            width: 600px; max-height: 80vh; 
+            border-radius: 20px; padding: 40px; 
+            overflow-y: auto; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+            position: relative; 
+            animation: popIn 0.3s ease; 
+            margin: 0;
+            z-index: 10000;
+        }
         .modal-content.wide { width: 900px; display: flex; gap: 20px; }
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; z-index: 2200; }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; z-index: 100; }
         
         /* DELETE MODAL SPECIFIC */
-        #confirm-modal-content { width: 400px; max-width: 100%; text-align: center; padding: 30px; background: #2d3436; color: white; }
+        #confirm-modal-content { width: 400px; text-align: center; padding: 30px; background: #2d3436; color: white; }
         #confirm-title { font-size: 22px; font-weight: 700; color: white; margin-bottom: 15px; }
         #confirm-msg { color: #bbb; margin-bottom: 30px; font-size: 15px; }
         .confirm-actions { display: flex; gap: 15px; justify-content: center; }
-        
+
         #import-file-input { display: none; }
 
         /* --- RESPONSIVE (MOBILE) --- */
@@ -324,13 +350,26 @@
             .btn-trash, .btn-edit { position: static !important; width: 50px !important; height: 50px !important; }
             
             .grid-list { grid-template-columns: 1fr; } 
-            .modal-content, .modal-content.wide { width: 100%; max-height: calc(100dvh - 40px); flex-direction: column; }
+            
+            /* 弹窗修正 */
+            .modal-content, .modal-content.wide { 
+                width: 85vw !important; 
+                max-width: 320px !important; 
+                max-height: 70vh !important; 
+                flex-direction: column;
+                margin: 0 !important;
+                margin-bottom: 15vh !important;
+                position: relative !important;
+                left: auto !important; top: auto !important; transform: none !important;
+            }
+            .modal-overlay { padding-bottom: 0; }
             .edit-card-left, .edit-card-right { width: 100%; }
         }
     </style>
 </head>
 <body>
 
+    <div id="app-background"></div>
     <div id="notification-area"></div>
 
     <div class="modal-overlay" id="confirm-modal" style="display: none;">
@@ -350,9 +389,7 @@
     <div class="sidebar">
         <div style="text-align: center; margin-bottom: 25px;">
             <h1 style="margin: 0; line-height: 1;">0804 <span id="love-heart" onclick="showLoveNote()">♥</span></h1>
-            <div style="font-family: 'Great Vibes', cursive; font-size: 32px; color: #444; margin-top: 5px; letter-spacing: 2px; font-weight: normal;">
-                Qz & Yy
-            </div>
+            <div style="font-family: 'Great Vibes', cursive; font-size: 32px; color: #444; margin-top: 5px; letter-spacing: 2px; font-weight: normal;">Qz & Yy</div>
         </div>
 
         <div style="flex: 1; display: flex; flex-direction: column;">
@@ -451,19 +488,19 @@
         let currentDashboardTab = 'Speaking';
 
         const loveNotes = [
-            "宝宝背单词辛苦啦! 奖励一个抱抱 🤗", 
+            "小宝练习苦啦! 奖励一个抱抱 🤗", 
             "雅思必过! 🦆💯", 
             "纽约今天很冷, 但想到你就很暖.☀", 
             "记得喝水, 记得想我 💧❤", 
             "0804 是宇宙最浪漫的坐标 🪐", 
             "小幸运和我都陪着宝宝 ❤",
-            "小潜宝宝很棒!",
-            "潜之越是俞神最喜欢的宝宝~"
+            "最喜欢我的小潜宝宝了~",
+            "宝宝也要记得休息眼睛, 可以闭着眼睛亲我"
         ];
 
         function showLoveNote() {
             const note = loveNotes[Math.floor(Math.random() * loveNotes.length)];
-            openModal("💌 From Fermat", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
+            openModal("💌 来自 Fermat 的悄悄话", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
         }
 
         window.onload = () => {
@@ -589,32 +626,15 @@
             el.onclick = () => startStudy(d.id); return el;
         }
 
-        /* --- TRASH & DELETE --- */
+        /* --- DELETE HANDLERS --- */
         function showConfirmModal(msg, action) { document.getElementById('confirm-msg').innerText = msg; pendingDeleteAction = action; document.getElementById('confirm-modal').style.display = 'flex'; }
         document.getElementById('confirm-btn-action').onclick = () => { if(pendingDeleteAction) pendingDeleteAction(); closeModal('confirm-modal'); };
         function confirmDeleteDeck(id, e) { e.stopPropagation(); showConfirmModal("Move collection to trash?", () => { const d = decks.find(d => d.id === id); if(d) { moveToTrash('deck', d); decks = decks.filter(d => d.id !== id); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); showToast("Moved to trash."); } }); }
         function deleteResource(id, e) { e.stopPropagation(); showConfirmModal("Move material to trash?", () => { const r = resources.find(r => r.id === id); if(r) { moveToTrash('resource', r); resources = resources.filter(r => r.id !== id); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); renderToolbox(null); showToast("Moved to trash."); } }); }
         function confirmDeleteCard() { showConfirmModal("Delete this specific card?", () => { const c = currentDeck.cards[currentCardIndex]; moveToTrash('card', c, currentDeck.id); currentDeck.cards.splice(currentCardIndex, 1); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); showToast("Moved to trash."); if(currentDeck.cards.length === 0) navTo('dashboard'); else { if(currentCardIndex >= currentDeck.cards.length) currentCardIndex = 0; loadCard(); } }); }
         function moveToTrash(type, data, originId = null) { trashBin.unshift({ id: Date.now(), type, data, originId, date: new Date().toLocaleString() }); localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); }
-        function renderTrash() {
-            const c = document.getElementById('trash-list'); if(!c) return; c.innerHTML = ''; if(trashBin.length === 0) { c.innerHTML = '<p style="color:#999;">Trash is empty.</p>'; return; }
-            trashBin.forEach(item => {
-                const el = document.createElement('div'); el.className = 'trash-item';
-                let title = item.type === 'deck' ? "📚 " + item.data.title : (item.type === 'resource' ? "📄 " + item.data.title : "🃏 " + item.data.frontTitle);
-                el.innerHTML = `<div class="trash-item-info"><span class="trash-type">${item.date}</span><span class="trash-title">${title}</span></div><div class="trash-actions"><button class="btn-restore" onclick="restoreItem(${item.id})">Restore</button><button class="btn-forever" onclick="hardDelete(${item.id})">Delete</button></div>`; c.appendChild(el);
-            });
-        }
-        function restoreItem(id) {
-            const index = trashBin.findIndex(i => i.id === id); if(index === -1) return; const item = trashBin[index];
-            if(item.type === 'deck') { decks.push(item.data); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); } 
-            else if(item.type === 'resource') { resources.push(item.data); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); } 
-            else if(item.type === 'card') {
-                let deck = decks.find(d => d.id === item.originId);
-                if(!deck) { deck = decks.find(d => d.title === "Restored Cards"); if(!deck) { deck = { id: Date.now(), title: "Restored Cards", category: "Vocabulary", cards: [] }; decks.push(deck); } }
-                deck.cards.push(item.data); localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
-            }
-            trashBin.splice(index, 1); localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); renderTrash(); showToast("Restored!");
-        }
+        function renderTrash() { const c = document.getElementById('trash-list'); if(!c) return; c.innerHTML = ''; if(trashBin.length === 0) { c.innerHTML = '<p style="color:#999;">Trash is empty.</p>'; return; } trashBin.forEach(item => { const el = document.createElement('div'); el.className = 'trash-item'; let title = item.type === 'deck' ? "📚 " + item.data.title : (item.type === 'resource' ? "📄 " + item.data.title : "🃏 " + item.data.frontTitle); el.innerHTML = `<div class="trash-item-info"><span class="trash-type">${item.date}</span><span class="trash-title">${title}</span></div><div class="trash-actions"><button class="btn-restore" onclick="restoreItem(${item.id})">Restore</button><button class="btn-forever" onclick="hardDelete(${item.id})">Delete</button></div>`; c.appendChild(el); }); }
+        function restoreItem(id) { const index = trashBin.findIndex(i => i.id === id); if(index === -1) return; const item = trashBin[index]; if(item.type === 'deck') { decks.push(item.data); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); } else if(item.type === 'resource') { resources.push(item.data); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); } else if(item.type === 'card') { let deck = decks.find(d => d.id === item.originId); if(!deck) { deck = decks.find(d => d.title === "Restored Cards"); if(!deck) { deck = { id: Date.now(), title: "Restored Cards", category: "Vocabulary", cards: [] }; decks.push(deck); } } deck.cards.push(item.data); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); } trashBin.splice(index, 1); localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); renderTrash(); showToast("Restored!"); }
         function hardDelete(id) { showConfirmModal("Delete forever?", () => { trashBin = trashBin.filter(i => i.id !== id); localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); renderTrash(); showToast("Deleted."); }); }
         function confirmEmptyTrash() { showConfirmModal("Empty trash?", () => { trashBin = []; localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); renderTrash(); showToast("Trash emptied."); }); }
 
@@ -663,15 +683,18 @@
         function openEditDeckModal(id, e) { e.stopPropagation(); currentEditingDeckId=id; const d=decks.find(x=>x.id===id); if(d){ document.getElementById('edit-deck-name').value=d.title; document.getElementById('edit-deck-cat').value=d.category||'Speaking Part 2'; document.getElementById('edit-deck-modal').style.display='flex'; } }
         function saveDeckEdits() { const d=decks.find(x=>x.id===currentEditingDeckId); if(d){ d.title=document.getElementById('edit-deck-name').value; d.category=document.getElementById('edit-deck-cat').value; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); closeModal('edit-deck-modal'); showToast("Updated!"); } }
         function toggleImportMode() { const m=document.getElementById('res-type-select').value; document.getElementById('import-single').style.display=m==='story'?'block':'none'; document.getElementById('import-sorter').style.display=m==='sorter'?'block':'none'; }
-        function saveResource() { const t=document.getElementById('res-title').value.trim(), c=document.getElementById('res-content').value; if(!t) return showToast("Title needed","error"); resources.push({id:Date.now(),title:t,content:c,type:'story'}); localStorage.setItem('0804_v4_resources',JSON.stringify(resources)); showToast("Saved"); document.getElementById('res-title').value=""; document.getElementById('res-content').value=""; navTo('toolbox'); }
-        function parseRawNotes() { const r=document.getElementById('sorter-raw-input').value; if(!r.trim()) return showToast("Paste content","error"); sorterItems=[]; r.split(/\n+/).forEach(l=>{ let c=l.trim().replace(/^[•♦\-\*]+\s*/,'').replace(/^\d+\.\s*/,''); if(c.length>1) sorterItems.push({text:c,selected:false,id:Date.now()+Math.random()}); }); renderSorterList(); document.getElementById('sorter-step-1').style.display='none'; document.getElementById('sorter-step-2').style.display='block'; }
-        function renderSorterList() { const c=document.getElementById('sorter-results-list'); c.innerHTML=''; sorterItems.forEach(i=>{ const el=document.createElement('div'); el.className=`sorter-item ${i.selected?'selected':''}`; el.onclick=()=>{i.selected=!i.selected;renderSorterList();}; el.innerHTML=`<div class="sorter-checkbox">${i.selected?'✓':''}</div><div style="font-size:14px;">${i.text}</div>`; c.appendChild(el); }); }
-        function bundleSelectedItems() { const sel=sorterItems.filter(i=>i.selected); if(!sel.length) return showToast("Select items","error"); const cat=document.getElementById('sorter-category-name').value.trim(); if(!cat) return showToast("Enter Category Name","error"); sel.forEach(i=>{ let t=i.text, c=i.text, m=i.text.match(/^(.*?)[\(（]/); if(m) t=m.length > 1 ? m[1].trim() : t; else { const p=i.text.split(/[:：]/); if(p.length>1) t=p[0].trim(); } resources.push({id:Date.now()+Math.random(),title:t,content:c,type:'vocab'}); }); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); const nc={id:Date.now(), frontTitle:cat, frontBullets:[], backContent:sel.map(i=>{ let t=i.text, m=t.match(/^(.*?)[\(（]/); if(m) t=m.length > 1 ? m[1].trim() : t; else { const p=t.split(/[:：]/); if(p.length>1) t=p[0].trim(); } return `• [${t}]`; }).join('\n')}; let di=decks.findIndex(d=>d.title===cat); if(di===-1) decks.push({id:Date.now(),title:cat,category:'Vocabulary',cards:[nc]}); else decks[di].cards.push(nc); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); showToast(`Bundled into "${cat}"!`); sorterItems=sorterItems.filter(i=>!i.selected); renderSorterList(); document.getElementById('sorter-category-name').value=""; }
-        function resetSorter() { sorterItems=[]; document.getElementById('sorter-step-1').style.display='block'; document.getElementById('sorter-step-2').style.display='none'; document.getElementById('sorter-raw-input').value=""; }
-        function renderToolbox(t) { const c=document.getElementById('resource-list'); c.innerHTML=''; document.querySelectorAll('.toolbox-tabs .tab-btn').forEach(b=>b.classList.remove('active')); if(t==='story')document.getElementById('tab-btn-story').classList.add('active'); if(t==='vocab')document.getElementById('tab-btn-vocab').classList.add('active'); const f=resources.filter(r=>(t?(r.type||'story')===t:true)); if(!f.length){c.innerHTML='<p style="color:#999">Empty</p>';return;} f.forEach(r=>{ const el=document.createElement('div'); el.className='card-item'; const i=r.type==='vocab'?'💡':'📝'; el.innerHTML=`<button class="item-action-btn btn-delete-item" onclick="deleteResource(${r.id},event)">×</button><button class="item-action-btn btn-edit-item" onclick="openEditResourceModal(${r.id},event)">✎</button><span style="font-size:12px;color:#999">${i} ${r.type==='vocab'?'Vocab':'Story'}</span><h3 style="margin:5px 0">${r.title}</h3><p style="font-size:12px;color:#666">${r.content.substring(0,50)}...</p>`; el.onclick=()=>openModal(r.title,r.content); c.appendChild(el); }); }
-        function processDeck() { const fr=document.getElementById('card-front-input').value, br=document.getElementById('card-back-input').value, ti=document.getElementById('deck-title').value||"Untitled", cat=document.getElementById('deck-category').value; if(!fr.trim()){showToast("Prompt needed","error");return;} const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("Generated"); }
+        function saveResource() { 
+            const fr=document.getElementById('card-front-input').value; 
+            const br=document.getElementById('card-back-input').value; 
+            const ti=document.getElementById('deck-title').value||"Untitled"; 
+            const cat=document.getElementById('deck-category').value; 
+            if(!fr.trim()){ 
+                document.getElementById('card-front-input').style.borderColor="#ff7675"; 
+                showToast("Prompt is empty!", "error"); return; 
+            }
+            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒! ❤️"); }
         function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
-        function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("Done!"); navTo('dashboard'); } }
+        function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦! 😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
         function saveResourceEdits() { const idx=resources.findIndex(r=>r.id===currentEditingResourceId); if(idx>-1){ resources[idx].title=document.getElementById('edit-res-title').value; resources[idx].content=document.getElementById('edit-res-content').value; localStorage.setItem('0804_v4_resources',JSON.stringify(resources)); renderToolbox(null); closeModal('edit-resource-modal'); } }
         function openEditCardModal() { const c=currentDeck.cards[currentCardIndex]; document.getElementById('edit-front-title').value=c.frontTitle; document.getElementById('edit-front-bullets').value=c.frontBullets?c.frontBullets.join('\n'):''; document.getElementById('edit-back-content').value=c.backContent; document.getElementById('edit-card-modal').style.display='flex'; renderEditPicker(); }
