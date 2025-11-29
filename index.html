@@ -32,30 +32,27 @@
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         
+        /* 🟢 修复1：回归自然流布局，解决 iOS 无法点击 */
         body {
             margin: 0; padding: 0;
             font-family: var(--font-main);
             background: transparent; 
-            height: 100vh;
+            min-height: 100vh; /* 允许生长 */
             color: var(--text-main);
-            overflow: hidden;
+            /* 移除 overflow: hidden，让页面自然滚动 */
+            overflow-x: hidden; 
+            overflow-y: auto;
             display: flex;
             padding-top: env(safe-area-inset-top); 
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 独立背景层 - 层级最低 */
+        /* 独立背景层 */
         #app-background {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-grad);
             z-index: -100; pointer-events: none;
-        }
-
-        /* 🟢 关键修复：全局提升交互元素层级 (Desktop & Mobile) */
-        .btn, .tab-btn, input, textarea, select, .card-item, .item-action-btn {
-            position: relative;
-            z-index: 50; /* 强制在最上层，确保可点击 */
         }
 
         /* --- SCROLLBAR --- */
@@ -106,7 +103,7 @@
             background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
             z-index: 1900; 
             display: none; opacity: 0; transition: opacity 0.3s;
-            pointer-events: none; 
+            pointer-events: none; /* 默认不拦截点击 */
         }
         .mobile-overlay.active { display: block; opacity: 1; pointer-events: auto; }
 
@@ -120,14 +117,15 @@
             display: flex; flex-direction: column; gap: 15px;
             z-index: 2000;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; /* Desktop default */
         }
 
         .main-content {
             flex: 1;
             padding: 60px;
-            overflow-y: auto;
+            /* 移除 overflow-y: auto，跟随 body 滚动 */
             position: relative;
-            z-index: 1; /* 确保内容层在背景之上 */
+            z-index: 1;
         }
 
         /* --- MODALS (GLOBAL) --- */
@@ -139,7 +137,14 @@
             z-index: 9999 !important; 
             display: none; 
             align-items: center; justify-content: center;
+            /* 关键修复：默认不拦截，JS显示时才拦截 */
+            pointer-events: none;
         }
+        /* 只有当 overlay 被设置为 flex 时才允许点击 */
+        .modal-overlay[style*="flex"] {
+            pointer-events: auto;
+        }
+
         .modal-content { 
             background: white; 
             width: 600px; max-height: 80vh; 
@@ -156,12 +161,6 @@
         @media (max-width: 768px) {
             .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
 
-            html, body {
-                height: auto !important;
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch;
-            }
-
             .sidebar {
                 position: fixed; top: 0; left: 0; bottom: 0;
                 height: 100%;
@@ -169,32 +168,42 @@
                 box-shadow: 5px 0 25px rgba(0,0,0,0.1);
                 transform: translateX(-100%);
                 padding-top: calc(60px + env(safe-area-inset-top));
-                pointer-events: none; 
+                
+                /* 🟢 修复2：隐藏时彻底移除交互，防止幽灵遮挡 */
+                visibility: hidden; 
+                transition: transform 0.3s, visibility 0s linear 0.3s;
+                pointer-events: none;
             }
-            .sidebar.active { transform: translateX(0); pointer-events: auto; }
+            .sidebar.active { 
+                transform: translateX(0); 
+                visibility: visible;
+                transition: transform 0.3s, visibility 0s;
+                pointer-events: auto;
+            }
 
             .main-content {
                 width: 100%;
                 padding: 20px 20px; 
                 padding-top: 80px;
-                overflow: visible !important; 
-                height: auto !important;
+                /* Mobile Reset */
+                overflow: visible; 
+                height: auto;
             }
 
+            /* Reset filters to boost performance & prevent layer bugs */
             .creator-main, .creator-toolbox, .settings-card {
                 backdrop-filter: none !important; 
                 padding: 20px !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                overflow: visible !important;
-                height: auto !important; 
                 flex: none !important;
             }
             
-            .creator-container { gap: 35px !important; }
+            .creator-container { gap: 35px !important; flex-direction: column; }
 
+            /* STUDY MODE */
             .study-container {
-                height: 100% !important; min-height: 80vh;
+                height: 80vh !important; /* Fixed height for study mode specifically */
                 display: flex; flex-direction: column; justify-content: center; align-items: center;
                 padding-bottom: 50px; 
             }
@@ -203,7 +212,6 @@
             .btn-trash, .btn-edit { position: static !important; width: 50px !important; height: 50px !important; }
             
             .grid-list { grid-template-columns: 1fr; } 
-            .creator-container { flex-direction: column; height: auto; }
             .edit-card-left, .edit-card-right { width: 100%; }
 
             /* 弹窗视觉修正 */
@@ -252,7 +260,7 @@
         .section-title-group { display: flex; align-items: center; gap: 10px; }
         .section-header span { font-size: 14px; color: #888; font-weight: 400; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; }
         
-        .btn-view-all { font-size: 13px; color: var(--primary); cursor: pointer; background: none; border: none; font-weight: 600; position: relative; z-index: 10;}
+        .btn-view-all { font-size: 13px; color: var(--primary); cursor: pointer; background: none; border: none; font-weight: 600; }
 
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; transition: all 0.3s ease; }
         .hidden-deck { display: none; }
