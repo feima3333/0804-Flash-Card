@@ -123,7 +123,7 @@
             position: relative;
         }
 
-        /* --- MODALS (GLOBAL) --- */
+        /* --- MODALS (全局修复) --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; 
             width: 100vw; height: 100vh; 
@@ -131,16 +131,23 @@
             backdrop-filter: blur(5px); 
             z-index: 9999 !important; 
             display: none; 
-            align-items: center; justify-content: center;
+            
+            /* 🟢 核心修复：使用 Flexbox 居中，不再依赖 position */
+            align-items: center;
+            justify-content: center;
         }
+        
         .modal-content { 
             background: white; 
             width: 600px; max-height: 80vh; 
             border-radius: 20px; padding: 40px; 
             overflow-y: auto; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
-            position: relative; animation: popIn 0.3s ease; 
+            position: relative; 
+            /* 动画现在安全了，因为我们不再使用 transform 居中 */
+            animation: popIn 0.3s ease; 
         }
+        
         .modal-content.wide { width: 900px; display: flex; gap: 20px; }
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
@@ -203,18 +210,22 @@
             .creator-container { flex-direction: column; height: auto; }
             .edit-card-left, .edit-card-right { width: 100%; }
 
-            /* 🎯 关键修改：视觉修正，往上提5% */
+            /* 🟢 手机端弹窗修正 */
+            .modal-overlay {
+                /* 稍微把内容顶上去一点，实现“视觉居中” */
+                padding-bottom: 20vh; 
+            }
+            
             .modal-content, .modal-content.wide { 
-                width: 85% !important; 
+                width: 85vw !important; 
                 max-width: 320px !important; 
                 max-height: 70vh !important; 
                 flex-direction: column;
                 margin: 0 !important;
                 
-                position: fixed !important;
-                left: 50% !important;
-                top: 45% !important; /* 🔥 从50%改为45%，视觉上更居中 */
-                transform: translate(-50%, -50%) !important;
+                /* 移除所有 transform 定位，完全依赖 Flex */
+                position: relative !important;
+                left: auto !important; top: auto !important; transform: none !important;
             }
         }
 
