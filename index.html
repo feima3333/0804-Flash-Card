@@ -7,8 +7,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="0804 Flashcards">
     
-    <link rel="icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png" type="image/png">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20icon.png">
+    <link rel="icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20Icon%20Personal.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20Icon%20Personal.png">
 
     <title>0804 Flashcards</title>
     
@@ -141,18 +141,18 @@
                 max-width: 100% !important;
             }
 
-            /* MOBILE STUDY FIXES (Critical Fix Here) */
+            /* MOBILE STUDY FIXES */
             .study-container {
                 height: 100% !important;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                padding-bottom: 50px; /* Space for bottom area */
+                padding-bottom: 50px; 
             }
             .scene { 
-                width: 85vw !important; /* Slightly narrower */
-                height: 50vh !important; /* Reduced height to fit screen */
+                width: 85vw !important; 
+                height: 50vh !important; 
                 max-height: 500px;
                 margin-bottom: 25px !important;
             }
@@ -414,7 +414,13 @@
     <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
     <div class="sidebar">
-        <h1>0804 <span id="love-heart" onclick="showLoveNote()">♥</span></h1>
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="margin: 0; line-height: 1;">0804 <span id="love-heart" onclick="showLoveNote()">♥</span></h1>
+            <div style="font-family: 'Times New Roman', serif; font-style: italic; font-size: 22px; color: #555; margin-top: 8px; letter-spacing: 1px;">
+                Qz & Yy
+            </div>
+        </div>
+
         <div style="flex: 1; display: flex; flex-direction: column;">
             <button class="btn btn-ghost" onclick="navTo('dashboard')" id="nav-dashboard">📚 Collections</button>
             <button class="btn btn-ghost" onclick="navTo('create')" id="nav-create">⚡ New Deck</button>
@@ -748,13 +754,7 @@
         function openEditDeckModal(id, e) { e.stopPropagation(); currentEditingDeckId=id; const d=decks.find(x=>x.id===id); if(d){ document.getElementById('edit-deck-name').value=d.title; document.getElementById('edit-deck-cat').value=d.category||'Speaking Part 2'; document.getElementById('edit-deck-modal').style.display='flex'; } }
         function saveDeckEdits() { const d=decks.find(x=>x.id===currentEditingDeckId); if(d){ d.title=document.getElementById('edit-deck-name').value; d.category=document.getElementById('edit-deck-cat').value; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); closeModal('edit-deck-modal'); showToast("Updated!"); } }
         function toggleImportMode() { const m=document.getElementById('res-type-select').value; document.getElementById('import-single').style.display=m==='story'?'block':'none'; document.getElementById('import-sorter').style.display=m==='sorter'?'block':'none'; }
-        function saveResource() { const t=document.getElementById('res-title').value.trim(), c=document.getElementById('res-content').value; if(!t) return showToast("Title needed","error"); resources.push({id:Date.now(),title:t,content:c,type:'story'}); localStorage.setItem('0804_v4_resources',JSON.stringify(resources)); showToast("Saved"); document.getElementById('res-title').value=""; document.getElementById('res-content').value=""; navTo('toolbox'); }
-        function parseRawNotes() { const r=document.getElementById('sorter-raw-input').value; if(!r.trim()) return showToast("Paste content","error"); sorterItems=[]; r.split(/\n+/).forEach(l=>{ let c=l.trim().replace(/^[•♦\-\*]+\s*/,'').replace(/^\d+\.\s*/,''); if(c.length>1) sorterItems.push({text:c,selected:false,id:Date.now()+Math.random()}); }); renderSorterList(); document.getElementById('sorter-step-1').style.display='none'; document.getElementById('sorter-step-2').style.display='block'; }
-        function renderSorterList() { const c=document.getElementById('sorter-results-list'); c.innerHTML=''; sorterItems.forEach(i=>{ const el=document.createElement('div'); el.className=`sorter-item ${i.selected?'selected':''}`; el.onclick=()=>{i.selected=!i.selected;renderSorterList();}; el.innerHTML=`<div class="sorter-checkbox">${i.selected?'✓':''}</div><div style="font-size:14px;">${i.text}</div>`; c.appendChild(el); }); }
-        function bundleSelectedItems() { const sel=sorterItems.filter(i=>i.selected); if(!sel.length) return showToast("Select items","error"); const cat=document.getElementById('sorter-category-name').value.trim(); if(!cat) return showToast("Enter Category Name","error"); sel.forEach(i=>{ let t=i.text, c=i.text, m=i.text.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=i.text.split(/[:：]/); if(p.length>1) t=p[0].trim(); } resources.push({id:Date.now()+Math.random(),title:t,content:c,type:'vocab'}); }); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); const nc={id:Date.now(), frontTitle:cat, frontBullets:[], backContent:sel.map(i=>{ let t=i.text, m=t.match(/^(.*?)[\(（]/); if(m) t=m[1].trim(); else { const p=t.split(/[:：]/); if(p.length>1) t=p[0].trim(); } return `• [${t}]`; }).join('\n')}; let di=decks.findIndex(d=>d.title===cat); if(di===-1) decks.push({id:Date.now(),title:cat,category:'Vocabulary',cards:[nc]}); else decks[di].cards.push(nc); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); showToast(`Bundled into "${cat}"!`); sorterItems=sorterItems.filter(i=>!i.selected); renderSorterList(); document.getElementById('sorter-category-name').value=""; }
-        function resetSorter() { sorterItems=[]; document.getElementById('sorter-step-1').style.display='block'; document.getElementById('sorter-step-2').style.display='none'; document.getElementById('sorter-raw-input').value=""; }
-        function renderToolbox(t) { const c=document.getElementById('resource-list'); c.innerHTML=''; document.querySelectorAll('.toolbox-tabs .tab-btn').forEach(b=>b.classList.remove('active')); if(t==='story')document.getElementById('tab-btn-story').classList.add('active'); if(t==='vocab')document.getElementById('tab-btn-vocab').classList.add('active'); const f=resources.filter(r=>(t?(r.type||'story')===t:true)); if(!f.length){c.innerHTML='<p style="color:#999">Empty</p>';return;} f.forEach(r=>{ const el=document.createElement('div'); el.className='card-item'; const i=r.type==='vocab'?'💡':'📝'; el.innerHTML=`<button class="item-action-btn btn-delete-item" onclick="deleteResource(${r.id},event)">×</button><button class="item-action-btn btn-edit-item" onclick="openEditResourceModal(${r.id},event)">✎</button><span style="font-size:12px;color:#999">${i} ${r.type==='vocab'?'Vocab':'Story'}</span><h3 style="margin:5px 0">${r.title}</h3><p style="font-size:12px;color:#666">${r.content.substring(0,50)}...</p>`; el.onclick=()=>openModal(r.title,r.content); c.appendChild(el); }); }
-        function processDeck() { 
+        function saveResource() { 
             const fr=document.getElementById('card-front-input').value; 
             const br=document.getElementById('card-back-input').value; 
             const ti=document.getElementById('deck-title').value||"Untitled"; 
@@ -763,9 +763,9 @@
                 document.getElementById('card-front-input').style.borderColor="#ff7675"; 
                 showToast("Prompt is empty!", "error"); return; 
             }
-            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒! ❤️"); }
+            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; l.forEach(x=>{ if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} if(!sp) tl.push(x.trim()); else { let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); if(c) bl.push(c); } }); let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); if(!sp&&l.length>1)bl=l; const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; const idx=decks.findIndex(d=>d.title===ti); if(idx>-1) decks[idx].cards.push(nc); else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); document.getElementById('card-front-input').value=""; document.getElementById('card-back-input').value=""; showToast("宝宝真棒！❤️"); }
         function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
-        function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦! 😘"); navTo('dashboard'); } }
+        function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦！😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
         function saveResourceEdits() { const idx=resources.findIndex(r=>r.id===currentEditingResourceId); if(idx>-1){ resources[idx].title=document.getElementById('edit-res-title').value; resources[idx].content=document.getElementById('edit-res-content').value; localStorage.setItem('0804_v4_resources',JSON.stringify(resources)); renderToolbox(null); closeModal('edit-resource-modal'); } }
         function openEditCardModal() { const c=currentDeck.cards[currentCardIndex]; document.getElementById('edit-front-title').value=c.frontTitle; document.getElementById('edit-front-bullets').value=c.frontBullets?c.frontBullets.join('\n'):''; document.getElementById('edit-back-content').value=c.backContent; document.getElementById('edit-card-modal').style.display='flex'; renderEditPicker(); }
