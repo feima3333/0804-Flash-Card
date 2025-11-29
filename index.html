@@ -7,11 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="0804 Flashcards">
     
-    <!-- 0804 Icon Refurbished -->
     <link rel="icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20Icon%20refurbished.png" type="image/png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20Icon%20refurbished.png">
 
-    <!-- Great Vibes Font for Qz & Yy -->
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 
     <title>0804 Flashcards</title>
@@ -94,8 +92,9 @@
             background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
             z-index: 1900; 
             display: none; opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; /* Default to pass-through */
         }
-        .mobile-overlay.active { display: block; opacity: 1; }
+        .mobile-overlay.active { display: block; opacity: 1; pointer-events: auto; /* Catch clicks when active */ }
 
         /* --- LAYOUT --- */
         .sidebar {
@@ -111,14 +110,21 @@
 
         .main-content {
             flex: 1;
-            padding: 60px; /* Desktop Padding */
+            padding: 60px; /* Optimized Desktop Padding */
             overflow-y: auto;
             position: relative;
         }
 
-        /* --- 📱 MOBILE FIXES (Z-INDEX & OVERFLOW) --- */
+        /* --- 📱 MOBILE FIXES (CORE FIX) --- */
         @media (max-width: 768px) {
             .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+
+            /* 1. 解锁滚动，解决 iOS 触摸冲突 */
+            html, body {
+                height: auto !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
 
             .sidebar {
                 position: fixed;
@@ -128,28 +134,32 @@
                 box-shadow: 5px 0 25px rgba(0,0,0,0.1);
                 transform: translateX(-100%);
                 padding-top: calc(60px + env(safe-area-inset-top));
+                /* 2. 关键修复：隐藏时变成空气，不挡点击 */
+                pointer-events: none; 
             }
-            .sidebar.active { transform: translateX(0); }
+            .sidebar.active { 
+                transform: translateX(0); 
+                pointer-events: auto; /* 显示时恢复点击 */
+            }
 
             .main-content {
                 width: 100%;
                 padding: 20px 20px; 
                 padding-top: 80px;
-                overflow: visible !important; /* FIX: Allow touch events */
+                overflow: visible !important; 
                 height: auto !important;
-            }
-
-            /* FIX: Force touchable elements to top */
-            .btn, .tab-btn, input, textarea, select, .card-item {
+                /* 3. 提升主内容层级 */
                 position: relative;
-                z-index: 50; 
+                z-index: 1;
             }
 
-            .creator-main, .creator-toolbox, .settings-card {
+            /* 移除可能导致性能问题的滤镜 */
+            .creator-main, .creator-toolbox, .settings-card, .card-item {
+                backdrop-filter: none !important; 
                 padding: 20px !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                overflow: visible !important; /* FIX */
+                overflow: visible !important;
                 height: auto !important; 
                 flex: none !important;
             }
@@ -170,7 +180,7 @@
             }
             .scene { 
                 width: 90vw !important; 
-                height: 60vh !important; 
+                height: 50vh !important; 
                 max-height: 500px;
                 margin-bottom: 25px !important;
             }
@@ -203,7 +213,7 @@
             padding: 12px 15px; border-radius: 12px; border: none;
             font-weight: 600; cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; 
-            position: relative; z-index: 10; /* FIX: Clickable */
+            position: relative; z-index: 10; 
         }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4); }
         .btn-ghost { background: transparent; color: #555; justify-content: flex-start;}
@@ -237,13 +247,13 @@
             background: var(--glass); backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.6);
             border-radius: 16px; padding: 20px; cursor: pointer;
-            transition: all 0.3s; position: relative; z-index: 10; /* FIX: Clickable */
+            transition: all 0.3s; position: relative; z-index: 10; 
         }
         
         .item-action-btn {
             position: absolute; top: 10px; width: 24px; height: 24px; border-radius: 50%;
             border: none; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; cursor: pointer; opacity: 0; transition: all 0.2s; z-index: 20; /* FIX */
+            font-weight: bold; cursor: pointer; opacity: 0; transition: all 0.2s; z-index: 20; 
         }
         .card-item:hover .item-action-btn { opacity: 1; }
         .btn-delete-item { right: 10px; background: #ff7675; color: white; }
@@ -267,10 +277,10 @@
         .settings-info h3 { margin: 0 0 5px 0; font-size: 16px; } .settings-info p { margin: 0; color: #888; font-size: 12px; }
         .settings-card button { width: auto; padding: 8px 15px; }
 
-        /* --- 🟡 DESKTOP LAYOUT OPTIMIZATION (Wider Input Area) --- */
+        /* --- 🟡 DESKTOP LAYOUT OPTIMIZATION --- */
         .creator-container { display: flex; gap: 25px; max-width: 1100px; margin: 0 auto; height: 85vh; }
         .creator-main {
-            flex: 3; /* CHANGED from 2 to 3 for wider input area */
+            flex: 3; /* Wider Input Area */
             display: flex; flex-direction: column; gap: 25px; 
             background: rgba(255,255,255,0.6); backdrop-filter: blur(15px);
             padding: 30px; border-radius: 24px; overflow-y: auto;
@@ -285,7 +295,7 @@
         .tab-btn { 
             flex: 1; padding: 8px 5px; border: none; background: none; font-weight: 700; color: #999; cursor: pointer; 
             font-size: 12px; border-radius: 8px; transition: all 0.2s;
-            position: relative; z-index: 10; /* FIX */
+            position: relative; z-index: 10; 
         }
         .tab-btn.active { background: var(--primary); color: white; }
 
@@ -297,7 +307,7 @@
             cursor: grab; transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
             font-size: 13px; color: #333; position: relative;
             font-weight: 700; user-select: none; border-radius: 12px;
-            z-index: 10; /* FIX */
+            z-index: 10; 
         }
         .toolbox-draggable.deck { border-left: 4px solid var(--primary); background: #fffcfd; }
         .toolbox-draggable:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(253, 121, 168, 0.15); }
@@ -308,7 +318,7 @@
             border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);
             font-family: inherit; font-size: 14px;
             margin-bottom: 10px; /* Added Spacing */
-            position: relative; z-index: 10; /* FIX */
+            position: relative; z-index: 10; 
         }
         input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.1); }
 
@@ -404,6 +414,9 @@
         </div>
     </div>
 
+    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+    <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
     <div class="sidebar">
         <div style="text-align: center; margin-bottom: 25px;">
             <h1 style="margin: 0; line-height: 1;">0804 <span id="love-heart" onclick="showLoveNote()">♥</span></h1>
@@ -489,7 +502,6 @@
 
     </div>
 
-    <!-- MODALS -->
     <div class="modal-overlay" id="res-modal" style="display:none;" onclick="closeModal('res-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('res-modal')">✕</button><h2 id="modal-title" style="color: var(--primary-dark); font-family: var(--font-serif);">Title</h2><div id="modal-body" class="deck-preview-list" style="color: #444; white-space: pre-wrap;"></div></div></div>
     <div class="modal-overlay" id="edit-card-modal" style="display:none;" onclick="closeModal('edit-card-modal')"><div class="modal-content wide" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-card-modal')">✕</button><div class="edit-card-left"><h2 style="color: var(--primary-dark); margin-bottom: 20px;">Edit Card</h2><label class="label-text">FRONT TITLE</label><input type="text" id="edit-front-title" style="margin-bottom: 15px;"><label class="label-text">BULLETS</label><textarea id="edit-front-bullets" style="height: 100px; margin-bottom: 15px;"></textarea><label class="label-text">BACK CONTENT</label><textarea id="edit-back-content" style="height: 200px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveCardEdits()">💾 Save Changes</button></div><div class="edit-card-right"><h3 style="font-size: 14px; margin-top: 0; color: #888;">Add Reference</h3><div class="toolbox-tabs"><button class="tab-btn active" id="edit-picker-story" onclick="setEditPickerTab('story')">Story</button><button class="tab-btn" id="edit-picker-deck" onclick="setEditPickerTab('deck')">Decks</button><button class="tab-btn" id="edit-picker-vocab" onclick="setEditPickerTab('vocab')">Vocab</button></div><input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search..." onkeyup="renderEditPicker()"><div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div><p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p></div></div></div>
     <div class="modal-overlay" id="edit-resource-modal" style="display:none;" onclick="closeModal('edit-resource-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-resource-modal')">✕</button><h2>Edit Material</h2><label class="label-text">TITLE</label><input type="text" id="edit-res-title" style="margin-bottom: 15px;"><label class="label-text">CONTENT</label><textarea id="edit-res-content" style="height: 250px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveResourceEdits()">💾 Save Changes</button></div></div>
@@ -507,7 +519,7 @@
 
         const loveNotes = ["宝宝背单词辛苦啦! 奖励一个抱抱 🤗", 
                            "雅思必过! 🦆💯",
-                           "纽约今天很冷, 但想到你就很暖.☀", 
+                           "纽约今天很冷, 但想到你就很暖 ☀", 
                            "记得喝水, 记得想我 💧❤", 
                            "0804 是宇宙最浪漫的坐标 🪐", 
                            "小幸运和我都陪着宝宝 ❤"];
