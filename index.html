@@ -123,37 +123,29 @@
             position: relative;
         }
 
-        /* --- MODALS (GLOBAL STYLE) --- */
+        /* --- MODALS (GLOBAL) --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; 
-            width: 100vw; height: 100vh; /* 全屏覆盖 */
+            width: 100vw; height: 100vh; 
             background: rgba(245,245,245,0.8); 
             backdrop-filter: blur(5px); 
-            z-index: 9999 !important; /* 🟢 强制最高层级，盖住一切 */
+            z-index: 9999 !important; 
             display: none; 
-            
-            /* 🟢 核心修复：使用 Flexbox 强制居中 */
-            align-items: center;
-            justify-content: center;
+            align-items: center; justify-content: center;
         }
-        
         .modal-content { 
             background: white; 
-            width: 600px; 
-            max-height: 80vh; 
-            border-radius: 20px; 
-            padding: 40px; 
+            width: 600px; max-height: 80vh; 
+            border-radius: 20px; padding: 40px; 
             overflow-y: auto; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
-            position: relative; 
-            animation: popIn 0.3s ease; 
+            position: relative; animation: popIn 0.3s ease; 
         }
-        
         .modal-content.wide { width: 900px; display: flex; gap: 20px; }
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
 
-        /* --- MOBILE FIXES --- */
+        /* --- 📱 MOBILE FIXES --- */
         @media (max-width: 768px) {
             .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
 
@@ -211,19 +203,18 @@
             .creator-container { flex-direction: column; height: auto; }
             .edit-card-left, .edit-card-right { width: 100%; }
 
-            /* 🟢 手机端弹窗终极修复 */
+            /* 🎯 关键修改：视觉修正，往上提5% */
             .modal-content, .modal-content.wide { 
-                width: 85vw !important; /* 强制占屏幕宽度的 85% */
+                width: 85% !important; 
                 max-width: 320px !important; 
                 max-height: 70vh !important; 
                 flex-direction: column;
                 margin: 0 !important;
                 
-                /* 重置所有定位，完全依赖外层 overlay 的 Flexbox 居中 */
-                position: relative !important;
-                left: auto !important;
-                top: auto !important;
-                transform: none !important;
+                position: fixed !important;
+                left: 50% !important;
+                top: 45% !important; /* 🔥 从50%改为45%，视觉上更居中 */
+                transform: translate(-50%, -50%) !important;
             }
         }
 
