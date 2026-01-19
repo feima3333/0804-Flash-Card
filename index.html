@@ -1016,22 +1016,9 @@
                 });
                 
                 if(hasError) return;
-                
-                // 保存到 deck
-                const idx = decks.findIndex(d => d.title === ti);
-                if(idx > -1) {
-                    decks[idx].cards.push(...newCards);
-                } else {
-                    decks.push({
-                        id: Date.now(),
-                        title: ti,
-                        category: cat,
-                        cards: newCards
-                    });
-                }
-                
-                // 显示预览确认
-                showPreviewModal(newCards, ti, cat, idx);
+
+                // 显示预览确认（只预览，不在这里落库，避免重复）
+                showPreviewModal(newCards, ti, cat);
                 return;
             }
             
@@ -1066,7 +1053,7 @@
         function openModal(t, c) { if(arguments.length===2){ document.getElementById('modal-title').innerText=t; document.getElementById('modal-body').innerHTML=c; document.getElementById('res-modal').style.display='flex'; } }
         
         // 显示卡片预览模态框
-        function showPreviewModal(cards, title, category, existingDeckIdx) {
+        function showPreviewModal(cards, title, category) {
             const modal = document.getElementById('preview-modal');
             const list = document.getElementById('preview-list');
             list.innerHTML = '';
@@ -1090,8 +1077,10 @@
             
             // 设置确认按钮的点击事件
             document.getElementById('confirm-create-btn').onclick = () => {
-                if(existingDeckIdx > -1) {
-                    decks[existingDeckIdx].cards.push(...cards);
+                // ✅ 只有点击确认才真正写入 decks（避免出现两份同名 deck）
+                const existingIdx = decks.findIndex(d => d.title === title && (d.category || '') === category);
+                if (existingIdx > -1) {
+                    decks[existingIdx].cards.push(...cards);
                 } else {
                     decks.push({
                         id: Date.now(),
@@ -1100,11 +1089,12 @@
                         cards: cards
                     });
                 }
-                
+
                 localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
                 document.getElementById('card-front-input').value = "";
                 document.getElementById('card-back-input').value = "";
                 closeModal('preview-modal');
+                renderDashboard(currentDashboardTab);
                 showToast(`成功创建 ${cards.length} 个单词卡片! 宝宝真棒! ❤️`);
             };
             
