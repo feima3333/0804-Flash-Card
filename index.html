@@ -710,6 +710,63 @@
                 document.getElementById('card-front-input').style.borderColor="#ff7675"; 
                 showToast("Prompt is empty!", "error"); return; 
             }
+            
+            // ✨ 新功能：Vocabulary 批量单词卡片创建
+            if(cat === "Vocabulary") {
+                // 解析格式：英文：中文；英文：中文
+                const pairs = fr.split(/；|;/).map(p => p.trim()).filter(p => p);
+                if(pairs.length === 0) {
+                    showToast("请输入单词！格式：英文：中文；英文：中文", "error");
+                    return;
+                }
+                
+                const newCards = [];
+                let hasError = false;
+                
+                pairs.forEach((pair, index) => {
+                    // 分割英文和中文
+                    const parts = pair.split(/：|:/).map(p => p.trim());
+                    if(parts.length !== 2 || !parts[0] || !parts[1]) {
+                        showToast(`格式错误！请检查第 ${index + 1} 个单词`, "error");
+                        hasError = true;
+                        return;
+                    }
+                    
+                    const english = parts[0];
+                    const chinese = parts[1];
+                    
+                    // 创建单词卡片
+                    newCards.push({
+                        id: Date.now() + index,
+                        frontTitle: english,
+                        frontBullets: [],
+                        backContent: chinese
+                    });
+                });
+                
+                if(hasError) return;
+                
+                // 保存到 deck
+                const idx = decks.findIndex(d => d.title === ti);
+                if(idx > -1) {
+                    decks[idx].cards.push(...newCards);
+                } else {
+                    decks.push({
+                        id: Date.now(),
+                        title: ti,
+                        category: cat,
+                        cards: newCards
+                    });
+                }
+                
+                localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
+                document.getElementById('card-front-input').value = "";
+                document.getElementById('card-back-input').value = "";
+                showToast(`成功创建 ${newCards.length} 个单词卡片! 宝宝真棒! ❤️`);
+                return;
+            }
+            
+            // 原有的 Speaking 类型卡片创建逻辑
             const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; 
             l.forEach(x=>{ 
                 if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} 
