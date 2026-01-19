@@ -323,9 +323,42 @@
 
         #import-file-input { display: none; }
 
+        
+            /* 移动端快捷键卡片优化 */
+            .shortcut-card { 
+                margin-top: 25px; 
+                display: flex; 
+                justify-content: center; 
+            }
+            .shortcut-card-inner {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                padding: 12px 24px;
+                border-radius: 16px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                border: 1px solid rgba(253, 121, 168, 0.2);
+            }
+            .shortcut-items {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                font-size: 13px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         /* --- RESPONSIVE (MOBILE) --- */
         @media (max-width: 768px) {
             .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+            .shortcut-card { margin-top: 20px !important; }
+            .shortcut-card-inner { 
+                padding: 10px 16px !important; 
+                font-size: 11px !important; 
+            }
+            .shortcut-items { gap: 12px !important; }
+            kbd { 
+                padding: 2px 6px !important; 
+                font-size: 10px !important; 
+            }
             
             .sidebar {
                 position: fixed; top: 0; left: 0; bottom: 0; height: 100dvh;
@@ -365,7 +398,22 @@
             .modal-overlay { padding-bottom: 0; }
             .edit-card-left, .edit-card-right { width: 100%; }
         }
-    </style>
+    
+        kbd {
+            background: linear-gradient(to bottom, #ffffff, #f8f8f8);
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06), inset 0 -2px 0 rgba(0,0,0,0.05);
+            color: #555;
+            display: inline-block;
+            min-width: 20px;
+            text-align: center;
+        }
+        </style>
 </head>
 <body>
 
@@ -409,7 +457,10 @@
     <div class="main-content">
         
         <div id="view-dashboard" class="view-section">
-            <h2>Study Collections</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Study Collections</h2>
+                <input type="text" id="dashboard-search" placeholder="🔍 Search decks..." style="width: 300px; padding: 10px 15px; border-radius: 20px; border: 1px solid #ddd; font-size: 14px;" onkeyup="filterDashboard()">
+            </div>
             <div class="toolbox-tabs" style="margin-top: 20px;">
                 <button class="tab-btn active" id="dash-btn-speaking" onclick="renderDashboard('Speaking')">Speaking</button>
                 <button class="tab-btn" id="dash-btn-vocab" onclick="renderDashboard('Vocabulary')">Vocabulary</button>
@@ -432,7 +483,13 @@
                     <h2 style="margin-bottom: 0;">Create Flashcard</h2>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="deck-title" placeholder="Deck Title (e.g. Singer)">
-                        <select id="deck-category" style="width: 180px;"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select>
+                        <select id="deck-category" style="width: 180px;" onchange="updateVocabHelper()"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select>
+                    </div>
+                    <div id="vocab-helper" style="display: none; background: #fff5e6; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ffd89b;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 13px; color: #d97706;">💡 格式：<code style="background: #fff; padding: 2px 6px; border-radius: 4px;">英文：中文；英文：中文</code></span>
+                            <button class="btn btn-secondary" onclick="fillExample()" style="padding: 6px 12px; font-size: 12px;">📝 填入示例</button>
+                        </div>
                     </div>
                     <textarea id="card-front-input" style="height: 150px;" placeholder="Paste IELTS prompt here..."></textarea>
                     <textarea id="card-back-input" style="height: 150px;" placeholder="Write your answer here..."></textarea>
@@ -452,7 +509,21 @@
 
         <div id="view-add-resource" class="view-section"><div class="creator-main" style="max-width: 900px; margin: 0 auto;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h2>Add Material</h2><select id="res-type-select" onchange="toggleImportMode()" style="width: auto; padding: 8px; border-radius: 8px;"><option value="story">Single Story / Essay</option><option value="sorter">Smart Vocab Sorter</option></select></div><div id="import-single"><input type="text" id="res-title" placeholder="Title (e.g. Chenyu Hua Story)"><textarea id="res-content" style="height: 300px;" placeholder="Write the full content here..."></textarea><button class="btn btn-primary btn-action-center" onclick="saveResource()">💾 Save to Toolbox</button></div><div id="import-sorter" style="display: none;"><div id="sorter-step-1"><p style="color:#666; font-size:13px; margin-bottom:10px;">Paste list to analyze and bundle.</p><textarea id="sorter-raw-input" style="height: 150px;" placeholder="Paste content here..."></textarea><button class="btn btn-primary" onclick="parseRawNotes()" style="margin-top:10px;">Analyze Text ↓</button></div><div id="sorter-step-2" style="display:none; margin-top: 30px;"><div style="display: flex; gap: 10px; margin-bottom: 10px;"><input type="text" id="sorter-category-name" placeholder="Category Name (Card Title) - e.g. Happiness"><button class="btn btn-primary" onclick="bundleSelectedItems()" style="width: 200px;">📦 Bundle & Save</button></div><div class="sorter-list" id="sorter-results-list"></div></div></div></div></div>
         
-        <div id="view-study" class="view-section study-container"><div class="study-content-wrapper"><div class="scene"><div class="card" id="flashcard" onclick="flipCard(event)"><div class="card-face front"><div class="topic-title" id="card-front-title">Topic</div><ul class="requirements-list" id="card-front-reqs"></ul></div><div class="card-face back"><div class="deck-badge" id="card-deck-badge-back">Deck</div><div id="card-back-content"></div></div></div></div><div class="controls"><button class="control-btn btn-no" onclick="nextCard(false)">✕</button><button class="control-btn btn-yes" onclick="nextCard(true)">✓</button><button class="control-btn btn-trash" onclick="confirmDeleteCard()">🗑️</button><button class="control-btn btn-edit" onclick="openEditCardModal()">✎</button></div></div></div>
+        <div id="view-study" class="view-section study-container"><div class="study-content-wrapper"><div class="scene"><div class="card" id="flashcard" onclick="flipCard(event)"><div class="card-face front"><div class="topic-title" id="card-front-title">Topic</div><ul class="requirements-list" id="card-front-reqs"></ul></div><div class="card-face back"><div class="deck-badge" id="card-deck-badge-back">Deck</div><div id="card-back-content"></div></div></div></div><div class="controls"><button class="control-btn btn-no" onclick="nextCard(false)">✕</button><button class="control-btn btn-yes" onclick="nextCard(true)">✓</button><button class="control-btn btn-trash" onclick="confirmDeleteCard()">🗑️</button><button class="control-btn btn-edit" onclick="openEditCardModal()">✎</button></div>
+            <div class="shortcut-card">
+                <div class="shortcut-card-inner">
+                    <div class="shortcut-items">
+                        <span style="font-weight: 600; color: var(--primary-dark); margin-right: 8px;">⌨️ 快捷键</span>
+                        <span style="color: #666;"><kbd>空格</kbd> 翻转</span>
+                        <span style="color: #ddd;">|</span>
+                        <span style="color: #666;"><kbd>←</kbd> 不会</span>
+                        <span style="color: #ddd;">|</span>
+                        <span style="color: #666;"><kbd>→</kbd> 会了</span>
+                        <span style="color: #ddd;">|</span>
+                        <span style="color: #666;"><kbd>E</kbd> 编辑</span>
+                    </div>
+                </div>
+            </div></div></div>
 
         <div id="view-trash" class="view-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -476,7 +547,38 @@
     <div class="modal-overlay" id="edit-resource-modal" style="display:none;" onclick="closeModal('edit-resource-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-resource-modal')">✕</button><h2>Edit Material</h2><label class="label-text">TITLE</label><input type="text" id="edit-res-title" style="margin-bottom: 15px;"><label class="label-text">CONTENT</label><textarea id="edit-res-content" style="height: 250px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveResourceEdits()">💾 Save Changes</button></div></div>
     <div class="modal-overlay" id="edit-deck-modal" style="display:none;" onclick="closeModal('edit-deck-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-deck-modal')">✕</button><h2>Edit Collection</h2><label class="label-text">DECK NAME</label><input type="text" id="edit-deck-name" style="margin-bottom: 15px;"><label class="label-text">CATEGORY</label><select id="edit-deck-cat" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 20px;"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select><button class="btn btn-primary" onclick="saveDeckEdits()">💾 Update Collection</button></div></div>
 
+    <div class="modal-overlay" id="preview-modal" style="display:none;" onclick="closeModal('preview-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('preview-modal')">✕</button>
+            <h2 style="color: var(--primary-dark); margin-bottom: 20px;">📋 卡片预览</h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                即将在 <strong id="preview-deck-title"></strong> 中创建 <strong id="preview-count"></strong> 个单词卡片：
+            </p>
+            <div id="preview-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeModal('preview-modal')">取消</button>
+                <button class="btn btn-primary" id="confirm-create-btn">✨ 确认创建</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        
+        // 监听类别变化，显示/隐藏Vocabulary格式提示
+        function updateVocabHelper() {
+            const cat = document.getElementById('deck-category').value;
+            const helper = document.getElementById('vocab-helper');
+            if (helper) {
+                helper.style.display = cat === 'Vocabulary' ? 'block' : 'none';
+            }
+        }
+        
+        // 填入示例
+        function fillExample() {
+            document.getElementById('card-front-input').value = 'example：例子；study：学习；practice：练习';
+            document.getElementById('card-back-input').value = '';
+        }
+        
         let decks = JSON.parse(localStorage.getItem('0804_v4_decks')) || [];
         let resources = JSON.parse(localStorage.getItem('0804_v4_resources')) || [];
         let trashBin = JSON.parse(localStorage.getItem('0804_v4_trash')) || [];
@@ -503,6 +605,36 @@
             openModal("💌 来自 Fermat 的悄悄话", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
         }
 
+        
+        // 键盘快捷键（仅在study模式下）
+        let keyboardEnabled = false;
+        
+        document.addEventListener('keydown', function(e) {
+            if (!keyboardEnabled) return;
+            
+            // 防止在输入框中触发
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.key) {
+                case ' ':  // 空格翻转
+                    e.preventDefault();
+                    flipCard({ target: document.getElementById('flashcard') });
+                    break;
+                case 'ArrowLeft':  // 左箭头 - 不会
+                    e.preventDefault();
+                    nextCard(false);
+                    break;
+                case 'ArrowRight':  // 右箭头 - 会了
+                    e.preventDefault();
+                    nextCard(true);
+                    break;
+                case 'e':
+                case 'E':  // E键 - 编辑
+                    e.preventDefault();
+                    openEditCardModal();
+                    break;
+            }
+        });
         window.onload = () => {
             document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
             navTo('dashboard');
@@ -529,6 +661,7 @@
             if(viewId === 'toolbox') renderToolbox('story');
             if(viewId === 'create') renderToolboxPicker();
             if(viewId === 'trash') renderTrash();
+            if(viewId === 'study') { keyboardEnabled = true; } else { keyboardEnabled = false; }
         }
 
         function showToast(msg, type='success') {
@@ -582,6 +715,21 @@
         }
 
         /* --- DASHBOARD --- */
+        
+        // Dashboard搜索功能
+        function filterDashboard() {
+            const searchTerm = document.getElementById('dashboard-search').value.toLowerCase();
+            const allCards = document.querySelectorAll('.card-item');
+            
+            allCards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                if (title.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
         function renderDashboard(tabName = 'Speaking') {
             currentDashboardTab = tabName;
             const container = document.getElementById('dashboard-content'); container.innerHTML = '';
@@ -759,10 +907,8 @@
                     });
                 }
                 
-                localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
-                document.getElementById('card-front-input').value = "";
-                document.getElementById('card-back-input').value = "";
-                showToast(`成功创建 ${newCards.length} 个单词卡片! 宝宝真棒! ❤️`);
+                // 显示预览确认
+                showPreviewModal(newCards, ti, cat, idx);
                 return;
             }
             
@@ -788,13 +934,59 @@
             showToast("宝宝真棒! ❤️"); 
         }
 
-        function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
+        function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); }
         function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦! 😘"); navTo('dashboard'); } }
         function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
         function saveResourceEdits() { const idx=resources.findIndex(r=>r.id===currentEditingResourceId); if(idx>-1){ resources[idx].title=document.getElementById('edit-res-title').value; resources[idx].content=document.getElementById('edit-res-content').value; localStorage.setItem('0804_v4_resources',JSON.stringify(resources)); renderToolbox(null); closeModal('edit-resource-modal'); } }
         function openEditCardModal() { const c=currentDeck.cards[currentCardIndex]; document.getElementById('edit-front-title').value=c.frontTitle; document.getElementById('edit-front-bullets').value=c.frontBullets?c.frontBullets.join('\n'):''; document.getElementById('edit-back-content').value=c.backContent; document.getElementById('edit-card-modal').style.display='flex'; renderEditPicker(); }
         function saveCardEdits() { const c=currentDeck.cards[currentCardIndex]; c.frontTitle=document.getElementById('edit-front-title').value; c.frontBullets=document.getElementById('edit-front-bullets').value.split('\n').filter(x=>x.trim()); c.backContent=document.getElementById('edit-back-content').value; localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); closeModal('edit-card-modal'); loadCard(); }
         function openModal(t, c) { if(arguments.length===2){ document.getElementById('modal-title').innerText=t; document.getElementById('modal-body').innerHTML=c; document.getElementById('res-modal').style.display='flex'; } }
+        
+        // 显示卡片预览模态框
+        function showPreviewModal(cards, title, category, existingDeckIdx) {
+            const modal = document.getElementById('preview-modal');
+            const list = document.getElementById('preview-list');
+            list.innerHTML = '';
+            
+            cards.forEach((card, idx) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;';
+                item.innerHTML = `
+                    <div>
+                        <span style="font-weight: 700; color: var(--primary-dark);">${card.frontTitle}</span>
+                        <span style="color: #888; margin: 0 8px;">→</span>
+                        <span>${card.backContent}</span>
+                    </div>
+                    <span style="color: #00b894;">✓</span>
+                `;
+                list.appendChild(item);
+            });
+            
+            document.getElementById('preview-count').innerText = cards.length;
+            document.getElementById('preview-deck-title').innerText = title;
+            
+            // 设置确认按钮的点击事件
+            document.getElementById('confirm-create-btn').onclick = () => {
+                if(existingDeckIdx > -1) {
+                    decks[existingDeckIdx].cards.push(...cards);
+                } else {
+                    decks.push({
+                        id: Date.now(),
+                        title: title,
+                        category: category,
+                        cards: cards
+                    });
+                }
+                
+                localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
+                document.getElementById('card-front-input').value = "";
+                document.getElementById('card-back-input').value = "";
+                closeModal('preview-modal');
+                showToast(`成功创建 ${cards.length} 个单词卡片! 宝宝真棒! ❤️`);
+            };
+            
+            modal.style.display = 'flex';
+        }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
 
     </script>
