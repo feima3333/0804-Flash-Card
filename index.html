@@ -6,473 +6,68 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="0804 Flashcards">
-    
     <link rel="icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20Icon%20High%20Solution.png" type="image/png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/feima3333/0804-Flash-Card/main/0804%20Icon%20High%20Solution.png">
-
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-
     <title>0804 Flashcards</title>
-    
-    <style>
-        /* --- VARIABLES & THEME --- */
-        :root {
-            --primary: #fd79a8; 
-            --primary-dark: #e84393;
-            --primary-light: #fff5f7;
-            --bg-grad: linear-gradient(135deg, #fff0f0 0%, #e2d1c3 100%);
-            --glass: rgba(255, 255, 255, 0.9);
-            --text-main: #2d3436;
-            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --font-serif: 'Georgia', 'Times New Roman', serif;
-            --shadow: 0 8px 32px 0 rgba(100, 100, 100, 0.1);
-            --link-color: #a29bfe;
-            --sidebar-width: 260px;
-        }
-
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        
-        /* 🟢 核心修复：允许页面滚动，解决 iOS 点击失效 */
-        body {
-            margin: 0; padding: 0;
-            font-family: var(--font-main);
-            background: transparent; 
-            min-height: 100vh;
-            color: var(--text-main);
-            overflow-x: hidden;
-            overflow-y: auto;
-            display: flex;
-            padding-top: env(safe-area-inset-top); 
-            padding-bottom: env(safe-area-inset-bottom);
-            position: relative;
-        }
-
-        /* 独立背景层 */
-        #app-background {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-grad);
-            z-index: -100; pointer-events: none;
-        }
-
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
-
-        /* --- NOTIFICATIONS --- */
-        #notification-area {
-            position: fixed; top: calc(20px + env(safe-area-inset-top)); right: 20px; z-index: 6000;
-            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-        }
-        .toast {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            border-left: 5px solid #ccc;
-            animation: slideIn 0.4s forwards;
-            font-size: 14px; font-weight: 600; color: #444;
-            min-width: 200px; display: flex; align-items: center; gap: 12px;
-            pointer-events: auto;
-        }
-        .toast.success { border-left-color: #00b894; }
-        .toast.error { border-left-color: #ff7675; }
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* --- MOBILE OVERLAY --- */
-        .mobile-overlay {
-            position: fixed; inset: 0; width: 100%; height: 100dvh;
-            background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
-            z-index: 1050; 
-            display: none; opacity: 0; transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        .mobile-overlay.active { display: block; opacity: 1; pointer-events: auto; }
-
-        /* --- MOBILE MENU BUTTON --- */
-        .mobile-menu-btn {
-            display: none; 
-            position: fixed; top: calc(15px + env(safe-area-inset-top)); left: 20px; z-index: 1200;
-            background: white; border: none; border-radius: 12px; padding: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            font-size: 20px; color: var(--text-main); cursor: pointer;
-        }
-
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: rgba(255,255,255,0.5);
-            backdrop-filter: blur(12px);
-            border-right: 1px solid rgba(255,255,255,0.6);
-            padding: 30px 20px;
-            display: flex; flex-direction: column; gap: 15px;
-            z-index: 1100;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
-        }
-
-        /* --- MAIN CONTENT --- */
-        .main-content {
-            flex: 1;
-            padding: 60px;
-            position: relative;
-            z-index: 100;
-        }
-
-        /* --- VIEW WRAPPER --- */
-        .view-section {
-            display: none; animation: fadeIn 0.4s ease; width: 100%;
-            position: relative; z-index: 105;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- COMPONENTS --- */
-        h1 { font-family: var(--font-serif); font-size: 28px; color: var(--text-main); margin: 0 0 20px 0; letter-spacing: -0.5px; }
-        #love-heart { color: var(--primary); font-size: 24px; cursor: pointer; display: inline-block; transition: transform 0.3s; position: relative; top: 2px; z-index: 50; }
-        #love-heart:hover { transform: scale(1.3) rotate(10deg); }
-
-        .btn {
-            position: relative; z-index: 10;
-            padding: 12px 15px; border-radius: 12px; border: none;
-            font-weight: 600; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; 
-        }
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4); }
-        .btn-primary:hover { transform: translateY(-2px); background: var(--primary-dark); }
-        .btn-ghost { background: transparent; color: #555; justify-content: flex-start;}
-        .btn-ghost:hover { background: rgba(255,255,255,0.5); color: var(--primary-dark); }
-        .btn-active { background: white; color: var(--primary-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .btn-danger { background: #ff7675; color: white; }
-        .btn-secondary { background: #eee; color: #555; }
-        
-        .btn-action-center { display: flex; margin: 25px auto 0 auto; width: 100%; max-width: 300px; justify-content: center; }
-        .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 5px; }
-        .btn-trash-link, .btn-settings-link { color: #636e72; font-size: 13px; }
-
-        /* SECTION HEADERS */
-        .section-header {
-            font-size: 18px; font-weight: 700; color: var(--text-main);
-            margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid rgba(0,0,0,0.05);
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .section-title-group { display: flex; align-items: center; gap: 10px; }
-        .section-header span { font-size: 14px; color: #888; font-weight: 400; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; }
-        .btn-view-all { font-size: 13px; color: var(--primary); cursor: pointer; background: none; border: none; font-weight: 600; position: relative; z-index: 10; }
-
-        .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; transition: all 0.3s ease; }
-        .hidden-deck { display: none; }
-
-        .card-item {
-            background: var(--glass); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.6);
-            border-radius: 16px; padding: 20px; cursor: pointer;
-            transition: all 0.3s; position: relative; z-index: 10;
-        }
-        .card-item:hover { transform: translateY(-3px); background: white; box-shadow: var(--shadow); }
-        
-        .item-action-btn {
-            position: absolute; top: 10px; width: 24px; height: 24px; border-radius: 50%;
-            border: none; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; cursor: pointer; opacity: 0; transition: all 0.2s; z-index: 20;
-        }
-        .card-item:hover .item-action-btn { opacity: 1; }
-        .btn-delete-item { right: 10px; background: #ff7675; color: white; }
-        .btn-edit-item { right: 40px; background: #74b9ff; color: white; }
-
-        /* TRASH */
-        .trash-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; position: relative; z-index: 10; }
-        .trash-title { font-weight: 600; color: #444; font-size: 14px;}
-        .btn-restore { color: #00b894; background: rgba(0, 184, 148, 0.1); padding: 5px 10px; border-radius: 6px; border:none; cursor: pointer; }
-        .btn-forever { color: #ff7675; background: rgba(255, 118, 117, 0.1); padding: 5px 10px; border-radius: 6px; border:none; cursor: pointer; }
-
-        /* SETTINGS */
-        .settings-card {
-            background: white; border-radius: 20px; padding: 30px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10;
-        }
-        .settings-info h3 { margin: 0 0 5px 0; font-size: 16px; } .settings-info p { margin: 0; color: #888; font-size: 12px; }
-        .settings-card button { width: auto; padding: 8px 15px; }
-
-        /* --- CREATOR LAYOUT --- */
-        .creator-container { display: flex; gap: 25px; max-width: 1100px; margin: 0 auto; min-height: 80vh; }
-        .creator-main {
-            flex: 3; display: flex; flex-direction: column; gap: 25px; 
-            background: rgba(255,255,255,0.6); backdrop-filter: blur(15px);
-            padding: 30px; border-radius: 24px; overflow-y: auto; position: relative; z-index: 10;
-        }
-        .creator-toolbox {
-            flex: 1; display: flex; flex-direction: column;
-            background: white; border-radius: 24px; padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; z-index: 10;
-        }
-
-        .toolbox-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid rgba(0,0,0,0.05); padding-bottom: 10px; }
-        .tab-btn { flex: 1; padding: 10px 5px; border: none; background: transparent; font-family: var(--font-serif); font-weight: 700; font-size: 16px; color: #888; cursor: pointer; border-radius: 10px; transition: all 0.2s; position: relative; z-index: 20; }
-        .tab-btn:hover { background: rgba(0,0,0,0.03); color: #000; }
-        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(253, 121, 168, 0.3); }
-
-        .toolbox-search { padding: 10px; margin-bottom: 10px; background: #f5f5f5; border: none; position: relative; z-index: 20; }
-        .toolbox-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px; }
-        
-        .toolbox-draggable {
-            padding: 12px; background: #fff; border: 1px solid #eee; 
-            cursor: grab; transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
-            font-size: 13px; color: #333; position: relative;
-            font-weight: 700; user-select: none; border-radius: 12px;
-            z-index: 20; 
-        }
-        .toolbox-draggable.deck { border-left: 4px solid var(--primary); background: #fffcfd; }
-        .toolbox-draggable:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(253, 121, 168, 0.15); }
-
-        input, select, textarea {
-            width: 100%; padding: 15px; border-radius: 12px;
-            border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9);
-            font-family: inherit; font-size: 14px;
-            margin-bottom: 10px; position: relative; z-index: 20; 
-        }
-        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.1); }
-
-        /* --- STUDY MODE --- */
-        .study-container { display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; position: relative; z-index: 10; }
-        .study-content-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; }
-        .scene { width: 650px; height: 450px; perspective: 1000px; margin-bottom: 30px; position: relative; z-index: 20; }
-        .card { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: default; }
-        .card.is-flipped { transform: rotateY(180deg); }
-        
-        .card-face {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            backface-visibility: hidden; -webkit-backface-visibility: hidden;
-            border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 40px; text-align: center; background: white; box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-        }
-        .card-face.back { 
-            background: #2d3436; color: #ffffff; transform: rotateY(180deg); border: 1px solid #444; 
-            justify-content: flex-start; align-items: flex-start; padding: 60px 40px 40px 40px; 
-            overflow-y: auto; text-align: left; font-family: var(--font-serif);
-        }
-        #card-back-content { width: 100%; font-size: 18px; line-height: 1.8; color: #ecf0f1; }
-
-        .flashcard-list { list-style: none; padding: 0; margin: 0; }
-        .flashcard-list li { margin-bottom: 15px; display: flex; align-items: baseline; gap: 10px; }
-        .flashcard-list li::before { content: "•"; color: var(--primary); font-weight: bold; font-size: 20px; }
-
-        .deck-badge {
-            position: absolute; top: 30px;
-            background: rgba(0,0,0,0.05); color: #888;
-            padding: 5px 12px; border-radius: 20px;
-            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .card-face.back .deck-badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
-
-        .topic-title { font-family: var(--font-serif); font-size: 32px; font-weight: 700; margin-bottom: 30px; color: var(--primary-dark); line-height: 1.3; max-width: 90%; margin-top: 20px; }
-        .requirements-list {
-            list-style: none; padding: 25px 35px; text-align: left;
-            background: #f8f9fa; border-radius: 16px; font-size: 15px; color: #555; 
-            line-height: 1.6; width: 90%; border: 1px solid rgba(0,0,0,0.03);
-            font-family: var(--font-serif);
-        }
-        .requirements-list li { margin-bottom: 8px; display: flex; gap: 10px; }
-        .requirements-list li::before { content: "•"; color: var(--primary); font-weight: bold; font-size: 18px; line-height: 1; }
-        
-        .smart-link { color: var(--link-color); font-weight: 700; cursor: pointer; border-bottom: 1px dashed rgba(162, 155, 254, 0.5); display: inline; transition: all 0.2s; position: relative; z-index: 30;}
-        .smart-link:hover { color: #fff; background: var(--link-color); border-radius: 4px; padding: 0 4px; border-bottom-color: transparent; }
-        
-        .controls { display: flex; gap: 30px; position: relative; z-index: 50; margin-top: 20px; justify-content: center; }
-        .control-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .control-btn:hover { transform: scale(1.1); }
-        .btn-yes { color: #00b894; border: 2px solid #00b894; }
-        .btn-no { color: #ff7675; border: 2px solid #ff7675; }
-        .btn-trash { position: absolute; right: -80px; top: 10px; width: 40px; height: 40px; font-size: 16px; color: #b2bec3; border: 1px solid #dfe6e9; }
-        .btn-edit { position: absolute; left: -80px; top: 10px; width: 40px; height: 40px; font-size: 16px; color: #a29bfe; border: 1px solid #a29bfe; }
-
-        /* --- MODALS --- */
-        .modal-overlay { 
-            position: fixed; top: 0; left: 0; 
-            width: 100vw; height: 100vh; height: 100dvh;
-            background: rgba(245,245,245,0.8); 
-            backdrop-filter: blur(5px); 
-            z-index: 9999 !important; 
-            display: none; 
-            align-items: center; justify-content: center;
-            pointer-events: none; /* 默认不拦截，显示时 JS 需设为 auto */
-        }
-        .modal-overlay[style*="flex"] { pointer-events: auto; } /* 修正：显示时允许点击 */
-
-        .modal-content { 
-            background: white; 
-            width: 600px; max-height: 80vh; 
-            border-radius: 20px; padding: 40px; 
-            overflow-y: auto; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
-            position: relative; 
-            animation: popIn 0.3s ease; 
-            margin: 0;
-            z-index: 10000;
-        }
-        .modal-content.wide { width: 900px; display: flex; gap: 20px; }
-        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; z-index: 100; }
-        
-        /* DELETE MODAL SPECIFIC */
-        #confirm-modal-content { width: 400px; text-align: center; padding: 30px; background: #2d3436; color: white; }
-        #confirm-title { font-size: 22px; font-weight: 700; color: white; margin-bottom: 15px; }
-        #confirm-msg { color: #bbb; margin-bottom: 30px; font-size: 15px; }
-        .confirm-actions { display: flex; gap: 15px; justify-content: center; }
-
-        #import-file-input { display: none; }
-
-        
-            /* 移动端快捷键卡片优化 */
-            .shortcut-card { 
-                margin-top: 25px; 
-                display: flex; 
-                justify-content: center; 
-            }
-            .shortcut-card-inner {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                padding: 12px 24px;
-                border-radius: 16px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-                border: 1px solid rgba(253, 121, 168, 0.2);
-            }
-            .shortcut-items {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-                font-size: 13px;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        /* --- RESPONSIVE (MOBILE) --- */
-        @media (max-width: 768px) {
-            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
-            .shortcut-card { margin-top: 20px !important; }
-            .shortcut-card-inner { 
-                padding: 10px 16px !important; 
-                font-size: 11px !important; 
-            }
-            .shortcut-items { gap: 12px !important; }
-            kbd { 
-                padding: 2px 6px !important; 
-                font-size: 10px !important; 
-            }
-            
-            .sidebar {
-                position: fixed; top: 0; left: 0; bottom: 0; height: 100dvh;
-                background: rgba(255, 255, 255, 0.98);
-                box-shadow: 5px 0 25px rgba(0,0,0,0.1);
-                transform: translateX(-100%);
-                padding-top: calc(60px + env(safe-area-inset-top));
-                pointer-events: none;
-                visibility: hidden;
-            }
-            .sidebar.active { transform: translateX(0); pointer-events: auto; visibility: visible; }
-
-            .main-content { width: 100%; height: auto; padding: 20px 20px; padding-top: 80px; }
-
-            .creator-container { flex-direction: column; height: auto !important; gap: 35px !important; }
-            .creator-main { flex: none !important; width: 100% !important; padding: 20px !important; }
-            .creator-toolbox { flex: none !important; width: 100% !important; height: 400px; padding: 20px !important; }
-            
-            .study-container { min-height: 70vh; flex-direction: column; justify-content: center; }
-            .scene { width: 90vw !important; height: 60vh !important; margin-bottom: 25px !important; }
-            .controls { width: 100%; justify-content: center !important; gap: 20px !important; position: static !important; }
-            .btn-trash, .btn-edit { position: static !important; width: 50px !important; height: 50px !important; }
-            
-            .grid-list { grid-template-columns: 1fr; } 
-            
-            /* 弹窗修正 */
-            .modal-content, .modal-content.wide { 
-                width: 85vw !important; 
-                max-width: 320px !important; 
-                max-height: 70vh !important; 
-                flex-direction: column;
-                margin: 0 !important;
-                margin-bottom: 15vh !important;
-                position: relative !important;
-                left: auto !important; top: auto !important; transform: none !important;
-            }
-            .modal-overlay { padding-bottom: 0; }
-            .edit-card-left, .edit-card-right { width: 100%; }
-        }
-    
-        kbd {
-            background: linear-gradient(to bottom, #ffffff, #f8f8f8);
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 3px 8px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
-            font-size: 11px;
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06), inset 0 -2px 0 rgba(0,0,0,0.05);
-            color: #555;
-            display: inline-block;
-            min-width: 20px;
-            text-align: center;
-        }
-        </style>
+    <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-
     <div id="app-background"></div>
     <div id="notification-area"></div>
 
-    <div class="modal-overlay" id="confirm-modal" style="display: none;">
-        <div class="modal-content" id="confirm-modal-content">
+    <div class="modal-overlay" id="confirm-modal" style="display:none;">
+        <div class="modal-content" id="confirm-modal-content" data-modal-content>
             <div id="confirm-title">Are you sure?</div>
             <div id="confirm-msg">This action cannot be undone.</div>
             <div class="confirm-actions">
-                <button class="btn btn-secondary" onclick="closeModal('confirm-modal')">Cancel</button>
+                <button class="btn btn-secondary" id="confirm-cancel-btn">Cancel</button>
                 <button class="btn btn-danger" id="confirm-btn-action">Delete</button>
             </div>
         </div>
     </div>
 
-    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
-    <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+    <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+    <div class="mobile-overlay" id="mobile-overlay"></div>
 
     <div class="sidebar">
-        <div style="text-align: center; margin-bottom: 25px;">
-            <h1 style="margin: 0; line-height: 1;">0804 <span id="love-heart" onclick="showLoveNote()">♥</span></h1>
-            <div style="font-family: 'Great Vibes', cursive; font-size: 32px; color: #444; margin-top: 5px; letter-spacing: 2px; font-weight: normal;">Qz & Yy</div>
+        <div style="text-align:center; margin-bottom:25px;">
+            <h1 style="margin:0; line-height:1;">0804 <span id="love-heart">♥</span></h1>
+            <div style="font-family:'Great Vibes', cursive; font-size:32px; color:#444; margin-top:5px; letter-spacing:2px; font-weight:normal;">Qz & Yy</div>
         </div>
 
-        <div style="flex: 1; display: flex; flex-direction: column;">
-            <button class="btn btn-ghost" onclick="navTo('dashboard')" id="nav-dashboard">📚 Collections</button>
-            <button class="btn btn-ghost" onclick="navTo('create')" id="nav-create">⚡ New Deck</button>
-            <div style="height: 20px;"></div>
-            <button class="btn btn-ghost" onclick="navTo('toolbox')" id="nav-toolbox">🧰 Toolbox</button>
-            <button class="btn btn-ghost" onclick="navTo('add-resource')" id="nav-add-resource">➕ Add Material</button>
-            
+        <div style="flex:1; display:flex; flex-direction:column;">
+            <button class="btn btn-ghost" id="nav-dashboard">📚 Collections</button>
+            <button class="btn btn-ghost" id="nav-create">⚡ New Deck</button>
+            <div style="height:20px;"></div>
+            <button class="btn btn-ghost" id="nav-toolbox">🧰 Toolbox</button>
+            <button class="btn btn-ghost" id="nav-add-resource">➕ Add Material</button>
+
             <div class="sidebar-bottom">
-                <button class="btn btn-ghost btn-trash-link" onclick="navTo('trash')" id="nav-trash" style="margin-top: auto;">🗑️ Trash Bin</button>
-                <button class="btn btn-ghost btn-settings-link" onclick="navTo('settings')" id="nav-settings">⚙️ Settings / Backup</button>
+                <button class="btn btn-ghost btn-trash-link" id="nav-trash" style="margin-top:auto;">🗑️ Trash Bin</button>
+                <button class="btn btn-ghost btn-settings-link" id="nav-settings">⚙️ Settings / Backup</button>
             </div>
         </div>
     </div>
 
     <div class="main-content">
-        
         <div id="view-dashboard" class="view-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">Study Collections</h2>
-                <input type="text" id="dashboard-search" placeholder="🔍 Search decks..." style="width: 300px; padding: 10px 15px; border-radius: 20px; border: 1px solid #ddd; font-size: 14px;" onkeyup="filterDashboard()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0;">Study Collections</h2>
+                <input type="text" id="dashboard-search" placeholder="🔍 Search decks..." style="width:300px; padding:10px 15px; border-radius:20px; border:1px solid #ddd; font-size:14px;">
             </div>
-            <div class="toolbox-tabs" style="margin-top: 20px;">
-                <button class="tab-btn active" id="dash-btn-speaking" onclick="renderDashboard('Speaking')">Speaking</button>
-                <button class="tab-btn" id="dash-btn-vocab" onclick="renderDashboard('Vocabulary')">Vocabulary</button>
+            <div class="toolbox-tabs" style="margin-top:20px;">
+                <button class="tab-btn active" id="dash-btn-speaking">Speaking</button>
+                <button class="tab-btn" id="dash-btn-vocab">Vocabulary</button>
             </div>
             <div id="dashboard-content"></div>
         </div>
 
         <div id="view-toolbox" class="view-section">
             <h2>Your Toolbox</h2>
-            <div class="toolbox-tabs" style="margin-top: 20px;">
-                <button class="tab-btn active" id="tab-btn-story" onclick="renderToolbox('story')">Stories</button>
-                <button class="tab-btn" id="tab-btn-vocab" onclick="renderToolbox('vocab')">Vocab</button>
+            <div class="toolbox-tabs" style="margin-top:20px;">
+                <button class="tab-btn active" id="tab-btn-story">Stories</button>
+                <button class="tab-btn" id="tab-btn-vocab">Vocab</button>
             </div>
             <div class="grid-list" id="resource-list"></div>
         </div>
@@ -480,124 +75,255 @@
         <div id="view-create" class="view-section">
             <div class="creator-container">
                 <div class="creator-main">
-                    <h2 style="margin-bottom: 0;">Create Flashcard</h2>
-                    <div style="display: flex; gap: 10px;">
+                    <h2 style="margin-bottom:0;">Create Flashcard</h2>
+                    <div style="display:flex; gap:10px;">
                         <input type="text" id="deck-title" placeholder="Deck Title (e.g. Singer)">
-                        <select id="deck-category" style="width: 180px;" onchange="updateVocabHelper()"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select>
+                        <select id="deck-category" style="width:180px;">
+                            <option value="Speaking Part 1">Speaking Part 1</option>
+                            <option value="Speaking Part 2">Speaking Part 2</option>
+                            <option value="Speaking Part 3">Speaking Part 3</option>
+                            <option value="Vocabulary">Vocabulary</option>
+                        </select>
                     </div>
-                    <div id="vocab-helper" style="display: none; background: #fff5e6; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ffd89b;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; color: #d97706;">💡 格式：<code style="background: #fff; padding: 2px 6px; border-radius: 4px;">英文：中文；英文：中文</code></span>
-                            <button class="btn btn-secondary" onclick="fillExample()" style="padding: 6px 12px; font-size: 12px;">📝 填入示例</button>
+                    <div id="vocab-helper" style="display:none; background:#fff5e6; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #ffd89b;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:13px; color:#d97706;">💡 格式：<code style="background:#fff; padding:2px 6px; border-radius:4px;">英文：中文；英文：中文</code></span>
+                            <button class="btn btn-secondary" id="fill-example-btn" style="padding:6px 12px; font-size:12px;">📝 填入示例</button>
                         </div>
                     </div>
-                    <textarea id="card-front-input" style="height: 150px;" placeholder="Paste IELTS prompt here..."></textarea>
-                    <textarea id="card-back-input" style="height: 150px;" placeholder="Write your answer here..."></textarea>
-                    <button class="btn btn-primary btn-action-center" onclick="processDeck()">✨ Generate Cards</button>
+                    <textarea id="card-front-input" style="height:150px;" placeholder="Paste IELTS prompt here..."></textarea>
+                    <textarea id="card-back-input" style="height:150px;" placeholder="Write your answer here..."></textarea>
+                    <button class="btn btn-primary btn-action-center" id="generate-cards-btn">✨ Generate Cards</button>
                 </div>
+
                 <div class="creator-toolbox">
                     <div class="toolbox-tabs">
-                        <button class="tab-btn active" id="tab-picker-story" onclick="setPickerTab('story')">Stories</button>
-                        <button class="tab-btn" id="tab-picker-vocab" onclick="setPickerTab('vocab')">Vocab</button>
-                        <button class="tab-btn" id="tab-picker-deck" onclick="setPickerTab('deck')">Decks</button>
+                        <button class="tab-btn active" id="tab-picker-story">Stories</button>
+                        <button class="tab-btn" id="tab-picker-vocab">Vocab</button>
+                        <button class="tab-btn" id="tab-picker-deck">Decks</button>
                     </div>
-                    <input type="text" class="toolbox-search" id="toolbox-picker-search" placeholder="Search..." onkeyup="renderToolboxPicker()">
+                    <input type="text" class="toolbox-search" id="toolbox-picker-search" placeholder="Search...">
                     <div class="toolbox-list" id="toolbox-picker-list"></div>
                 </div>
             </div>
         </div>
 
-        <div id="view-add-resource" class="view-section"><div class="creator-main" style="max-width: 900px; margin: 0 auto;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h2>Add Material</h2><select id="res-type-select" onchange="toggleImportMode()" style="width: auto; padding: 8px; border-radius: 8px;"><option value="story">Single Story / Essay</option><option value="sorter">Smart Vocab Sorter</option></select></div><div id="import-single"><input type="text" id="res-title" placeholder="Title (e.g. Chenyu Hua Story)"><textarea id="res-content" style="height: 300px;" placeholder="Write the full content here..."></textarea><button class="btn btn-primary btn-action-center" onclick="saveResource()">💾 Save to Toolbox</button></div><div id="import-sorter" style="display: none;"><div id="sorter-step-1"><p style="color:#666; font-size:13px; margin-bottom:10px;">Paste list to analyze and bundle.</p><textarea id="sorter-raw-input" style="height: 150px;" placeholder="Paste content here..."></textarea><button class="btn btn-primary" onclick="parseRawNotes()" style="margin-top:10px;">Analyze Text ↓</button></div><div id="sorter-step-2" style="display:none; margin-top: 30px;"><div style="display: flex; gap: 10px; margin-bottom: 10px;"><input type="text" id="sorter-category-name" placeholder="Category Name (Card Title) - e.g. Happiness"><button class="btn btn-primary" onclick="bundleSelectedItems()" style="width: 200px;">📦 Bundle & Save</button></div><div class="sorter-list" id="sorter-results-list"></div></div></div></div></div>
-        
-        <div id="view-study" class="view-section study-container"><div class="study-content-wrapper"><div class="scene"><div class="card" id="flashcard" onclick="flipCard(event)"><div class="card-face front"><div class="topic-title" id="card-front-title">Topic</div><ul class="requirements-list" id="card-front-reqs"></ul></div><div class="card-face back"><div class="deck-badge" id="card-deck-badge-back">Deck</div><div id="card-back-content"></div></div></div></div><div class="controls"><button class="control-btn btn-no" onclick="nextCard(false)">✕</button><button class="control-btn btn-yes" onclick="nextCard(true)">✓</button><button class="control-btn btn-trash" onclick="confirmDeleteCard()">🗑️</button><button class="control-btn btn-edit" onclick="openEditCardModal()">✎</button></div>
-            <div class="shortcut-card">
-                <div class="shortcut-card-inner">
-                    <div class="shortcut-items">
-                        <span style="font-weight: 600; color: var(--primary-dark); margin-right: 8px;">⌨️ 快捷键</span>
-                        <span style="color: #666;"><kbd>空格</kbd> 翻转</span>
-                        <span style="color: #ddd;">|</span>
-                        <span style="color: #666;"><kbd>←</kbd> 不会</span>
-                        <span style="color: #ddd;">|</span>
-                        <span style="color: #666;"><kbd>→</kbd> 会了</span>
-                        <span style="color: #ddd;">|</span>
-                        <span style="color: #666;"><kbd>E</kbd> 编辑</span>
+        <div id="view-add-resource" class="view-section">
+            <div class="creator-main" style="max-width:900px; margin:0 auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2>Add Material</h2>
+                    <select id="res-type-select" style="width:auto; padding:8px; border-radius:8px;">
+                        <option value="story">Single Story / Essay</option>
+                        <option value="sorter">Smart Vocab Sorter</option>
+                    </select>
+                </div>
+
+                <div id="import-single">
+                    <input type="text" id="res-title" placeholder="Title (e.g. Chenyu Hua Story)">
+                    <textarea id="res-content" style="height:300px;" placeholder="Write the full content here..."></textarea>
+                    <button class="btn btn-primary btn-action-center" id="save-resource-btn">💾 Save to Toolbox</button>
+                </div>
+
+                <div id="import-sorter" style="display:none;">
+                    <div id="sorter-step-1">
+                        <p style="color:#666; font-size:13px; margin-bottom:10px;">Paste list to analyze and bundle.</p>
+                        <textarea id="sorter-raw-input" style="height:150px;" placeholder="Paste content here..."></textarea>
+                        <button class="btn btn-primary" id="parse-raw-notes-btn" style="margin-top:10px;">Analyze Text ↓</button>
+                    </div>
+                    <div id="sorter-step-2" style="display:none; margin-top:30px;">
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <input type="text" id="sorter-category-name" placeholder="Category Name (Card Title) - e.g. Happiness">
+                            <button class="btn btn-primary" id="bundle-selected-btn" style="width:200px;">📦 Bundle & Save</button>
+                        </div>
+                        <div class="sorter-list" id="sorter-results-list"></div>
                     </div>
                 </div>
-            </div></div></div>
+            </div>
+        </div>
+
+        <div id="view-study" class="view-section study-container">
+            <div class="study-content-wrapper">
+                <div class="scene">
+                    <div class="card" id="flashcard">
+                        <div class="card-face front">
+                            <div class="topic-title" id="card-front-title">Topic</div>
+                            <ul class="requirements-list" id="card-front-reqs"></ul>
+                        </div>
+                        <div class="card-face back">
+                            <div class="deck-badge" id="card-deck-badge-back">Deck</div>
+                            <div id="card-back-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="control-btn btn-no" id="study-prev-btn" title="Previous card">←</button>
+                    <button class="control-btn btn-yes" id="study-next-btn" title="Next card">→</button>
+                    <button class="control-btn btn-trash" id="study-delete-btn" title="Delete card">🗑️</button>
+                    <button class="control-btn btn-edit" id="study-edit-btn" title="Edit card">✎</button>
+                </div>
+
+                <div class="shortcut-card">
+                    <div class="shortcut-card-inner">
+                        <div class="shortcut-items">
+                            <span style="font-weight:600; color:var(--primary-dark); margin-right:8px;">⌨️ 快捷键</span>
+                            <span style="color:#666;"><kbd>空格</kbd> 翻转</span>
+                            <span style="color:#ddd;">|</span>
+                            <span style="color:#666;"><kbd>←</kbd> 上一张</span>
+                            <span style="color:#ddd;">|</span>
+                            <span style="color:#666;"><kbd>→</kbd> 下一张</span>
+                            <span style="color:#ddd;">|</span>
+                            <span style="color:#666;"><kbd>E</kbd> 编辑</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div id="view-trash" class="view-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h2>Trash Bin</h2>
-                <button class="btn btn-danger" onclick="confirmEmptyTrash()" style="width:auto;">Empty Trash</button>
+                <button class="btn btn-danger" id="empty-trash-btn" style="width:auto;">Empty Trash</button>
             </div>
-            <div id="trash-list" style="max-width: 800px;"></div>
+            <div id="trash-list" style="max-width:800px;"></div>
         </div>
 
         <div id="view-settings" class="view-section">
             <h2>Settings & Backup</h2>
             <p style="color:#666; margin-bottom:30px;">Manage your data securely.</p>
-            <div class="settings-card"><div class="settings-info"><h3>Export Data</h3><p>Backup all decks and resources.</p></div><button class="btn btn-primary" onclick="exportData()">📥 Export</button></div>
-            <div class="settings-card"><div class="settings-info"><h3>Import Data</h3><p>Restore from backup (merges data).</p></div><button class="btn btn-secondary" onclick="triggerImport()">📤 Import</button><input type="file" id="import-file-input" accept=".json" onchange="importData(this)"></div>
+            <div class="settings-card">
+                <div class="settings-info">
+                    <h3>Export Data</h3>
+                    <p>Backup all decks and resources.</p>
+                </div>
+                <button class="btn btn-primary" id="export-btn">📥 Export</button>
+            </div>
+            <div class="settings-card">
+                <div class="settings-info">
+                    <h3>Import Data</h3>
+                    <p>Restore from backup (merges data).</p>
+                </div>
+                <button class="btn btn-secondary" id="import-btn">📤 Import</button>
+                <input type="file" id="import-file-input" accept=".json">
+            </div>
         </div>
-
     </div>
 
-    <div class="modal-overlay" id="res-modal" style="display:none;" onclick="closeModal('res-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('res-modal')">✕</button><h2 id="modal-title" style="color: var(--primary-dark); font-family: var(--font-serif);">Title</h2><div id="modal-body" class="deck-preview-list" style="color: #444; white-space: pre-wrap;"></div></div></div>
-    <div class="modal-overlay" id="edit-card-modal" style="display:none;" onclick="closeModal('edit-card-modal')"><div class="modal-content wide" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-card-modal')">✕</button><div class="edit-card-left"><h2 style="color: var(--primary-dark); margin-bottom: 20px;">Edit Card</h2><label class="label-text">FRONT TITLE</label><input type="text" id="edit-front-title" style="margin-bottom: 15px;"><label class="label-text">BULLETS</label><textarea id="edit-front-bullets" style="height: 100px; margin-bottom: 15px;"></textarea><label class="label-text">BACK CONTENT</label><textarea id="edit-back-content" style="height: 200px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveCardEdits()">💾 Save Changes</button></div><div class="edit-card-right"><h3 style="font-size: 14px; margin-top: 0; color: #888;">Add Reference</h3><div class="toolbox-tabs"><button class="tab-btn active" id="edit-picker-story" onclick="setEditPickerTab('story')">Story</button><button class="tab-btn" id="edit-picker-deck" onclick="setEditPickerTab('deck')">Decks</button><button class="tab-btn" id="edit-picker-vocab" onclick="setEditPickerTab('vocab')">Vocab</button></div><input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search..." onkeyup="renderEditPicker()"><div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div><p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p></div></div></div>
-    <div class="modal-overlay" id="edit-resource-modal" style="display:none;" onclick="closeModal('edit-resource-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-resource-modal')">✕</button><h2>Edit Material</h2><label class="label-text">TITLE</label><input type="text" id="edit-res-title" style="margin-bottom: 15px;"><label class="label-text">CONTENT</label><textarea id="edit-res-content" style="height: 250px; margin-bottom: 15px;"></textarea><button class="btn btn-primary" onclick="saveResourceEdits()">💾 Save Changes</button></div></div>
-    <div class="modal-overlay" id="edit-deck-modal" style="display:none;" onclick="closeModal('edit-deck-modal')"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close" onclick="closeModal('edit-deck-modal')">✕</button><h2>Edit Collection</h2><label class="label-text">DECK NAME</label><input type="text" id="edit-deck-name" style="margin-bottom: 15px;"><label class="label-text">CATEGORY</label><select id="edit-deck-cat" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 20px;"><option value="Speaking Part 1">Speaking Part 1</option><option value="Speaking Part 2">Speaking Part 2</option><option value="Speaking Part 3">Speaking Part 3</option><option value="Vocabulary">Vocabulary</option></select><button class="btn btn-primary" onclick="saveDeckEdits()">💾 Update Collection</button></div></div>
+    <div class="modal-overlay" id="res-modal" style="display:none;">
+        <div class="modal-content" data-modal-content>
+            <button class="modal-close" data-close-modal="res-modal">✕</button>
+            <h2 id="modal-title" style="color:var(--primary-dark); font-family:var(--font-serif);">Title</h2>
+            <div id="modal-body" class="deck-preview-list" style="color:#444; white-space:pre-wrap;"></div>
+        </div>
+    </div>
 
-    <div class="modal-overlay" id="preview-modal" style="display:none;" onclick="closeModal('preview-modal')">
-        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
-            <button class="modal-close" onclick="closeModal('preview-modal')">✕</button>
-            <h2 style="color: var(--primary-dark); margin-bottom: 20px;">📋 卡片预览</h2>
-            <p style="color: #666; margin-bottom: 15px;">
+    <div class="modal-overlay" id="edit-card-modal" style="display:none;">
+        <div class="modal-content wide" data-modal-content>
+            <button class="modal-close" data-close-modal="edit-card-modal">✕</button>
+            <div class="edit-card-left">
+                <h2 style="color:var(--primary-dark); margin-bottom:20px;">Edit Card</h2>
+                <label class="label-text">FRONT TITLE</label>
+                <input type="text" id="edit-front-title" style="margin-bottom:15px;">
+                <label class="label-text">BULLETS</label>
+                <textarea id="edit-front-bullets" style="height:100px; margin-bottom:15px;"></textarea>
+                <label class="label-text">BACK CONTENT</label>
+                <textarea id="edit-back-content" style="height:200px; margin-bottom:15px;"></textarea>
+                <button class="btn btn-primary" id="save-card-edits-btn">💾 Save Changes</button>
+            </div>
+            <div class="edit-card-right">
+                <h3 style="font-size:14px; margin-top:0; color:#888;">Add Reference</h3>
+                <div class="toolbox-tabs">
+                    <button class="tab-btn active" id="edit-picker-story">Story</button>
+                    <button class="tab-btn" id="edit-picker-deck">Decks</button>
+                    <button class="tab-btn" id="edit-picker-vocab">Vocab</button>
+                </div>
+                <input type="text" class="toolbox-search" id="edit-picker-search" placeholder="Search...">
+                <div class="toolbox-list" id="edit-picker-list" style="flex:1; overflow-y:auto;"></div>
+                <p style="font-size:11px; color:#999; margin-top:10px;">Drag or Click to Insert</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-resource-modal" style="display:none;">
+        <div class="modal-content" data-modal-content>
+            <button class="modal-close" data-close-modal="edit-resource-modal">✕</button>
+            <h2>Edit Material</h2>
+            <label class="label-text">TITLE</label>
+            <input type="text" id="edit-res-title" style="margin-bottom:15px;">
+            <label class="label-text">CONTENT</label>
+            <textarea id="edit-res-content" style="height:250px; margin-bottom:15px;"></textarea>
+            <button class="btn btn-primary" id="save-resource-edits-btn">💾 Save Changes</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-deck-modal" style="display:none;">
+        <div class="modal-content" data-modal-content>
+            <button class="modal-close" data-close-modal="edit-deck-modal">✕</button>
+            <h2>Edit Collection</h2>
+            <label class="label-text">DECK NAME</label>
+            <input type="text" id="edit-deck-name" style="margin-bottom:15px;">
+            <label class="label-text">CATEGORY</label>
+            <select id="edit-deck-cat" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; margin-bottom:20px;">
+                <option value="Speaking Part 1">Speaking Part 1</option>
+                <option value="Speaking Part 2">Speaking Part 2</option>
+                <option value="Speaking Part 3">Speaking Part 3</option>
+                <option value="Vocabulary">Vocabulary</option>
+            </select>
+            <button class="btn btn-primary" id="save-deck-edits-btn">💾 Update Collection</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="preview-modal" style="display:none;">
+        <div class="modal-content" data-modal-content style="max-width:500px;">
+            <button class="modal-close" data-close-modal="preview-modal">✕</button>
+            <h2 style="color:var(--primary-dark); margin-bottom:20px;">📋 卡片预览</h2>
+            <p style="color:#666; margin-bottom:15px;">
                 即将在 <strong id="preview-deck-title"></strong> 中创建 <strong id="preview-count"></strong> 个单词卡片：
             </p>
-            <div id="preview-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-secondary" onclick="closeModal('preview-modal')">取消</button>
+            <div id="preview-list" style="max-height:300px; overflow-y:auto; margin-bottom:20px;"></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn btn-secondary" id="preview-cancel-btn">取消</button>
                 <button class="btn btn-primary" id="confirm-create-btn">✨ 确认创建</button>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="import-options-modal" style="display:none;" onclick="closeModal('import-options-modal')">
-        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
-            <button class="modal-close" onclick="closeModal('import-options-modal')">✕</button>
-            <h2 style="color: var(--primary-dark); margin-bottom: 20px;">📤 选择导入方式</h2>
-            <p style="color: #666; margin-bottom: 25px; line-height: 1.6;">
+    <div class="modal-overlay" id="import-options-modal" style="display:none;">
+        <div class="modal-content" data-modal-content style="max-width:500px;">
+            <button class="modal-close" data-close-modal="import-options-modal">✕</button>
+            <h2 style="color:var(--primary-dark); margin-bottom:20px;">📤 选择导入方式</h2>
+            <p style="color:#666; margin-bottom:25px; line-height:1.6;">
                 请选择如何导入备份文件：
             </p>
-            
-            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-                <div onclick="selectImportMode('merge')" style="padding: 20px; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'; this.style.background='var(--primary-light)';" onmouseout="this.style.borderColor='#ddd'; this.style.background='white';">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                        <span style="font-size: 24px;">🔄</span>
-                        <strong style="font-size: 16px; color: var(--text-main);">合并导入</strong>
+
+            <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
+                <div class="import-option" data-import-mode="merge" style="padding:20px; border:2px solid #ddd; border-radius:12px; cursor:pointer; transition:all 0.2s;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                        <span style="font-size:24px;">🔄</span>
+                        <strong style="font-size:16px; color:var(--text-main);">合并导入</strong>
                     </div>
-                    <p style="margin: 0; font-size: 13px; color: #666; line-height: 1.5;">
+                    <p style="margin:0; font-size:13px; color:#666; line-height:1.5;">
                         只添加新的数据，保留现有内容。<br>
-                        <span style="color: #999; font-size: 12px;">适合：增量备份恢复</span>
+                        <span style="color:#999; font-size:12px;">适合：增量备份恢复</span>
                     </p>
                 </div>
-                
-                <div onclick="selectImportMode('replace')" style="padding: 20px; border: 2px solid #ff7675; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: #fff5f5;" onmouseover="this.style.background='#ffe5e5';" onmouseout="this.style.background='#fff5f5';">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                        <span style="font-size: 24px;">⚠️</span>
-                        <strong style="font-size: 16px; color: #ff7675;">完全替换</strong>
+
+                <div class="import-option import-option-danger" data-import-mode="replace" style="padding:20px; border:2px solid #ff7675; border-radius:12px; cursor:pointer; transition:all 0.2s; background:#fff5f5;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                        <span style="font-size:24px;">⚠️</span>
+                        <strong style="font-size:16px; color:#ff7675;">完全替换</strong>
                     </div>
-                    <p style="margin: 0; font-size: 13px; color: #666; line-height: 1.5;">
-                        <strong style="color: #ff7675;">删除所有现有数据</strong>，完全使用备份文件替换。<br>
-                        <span style="color: #999; font-size: 12px;">适合：数据损坏修复、完整恢复</span>
+                    <p style="margin:0; font-size:13px; color:#666; line-height:1.5;">
+                        <strong style="color:#ff7675;">删除所有现有数据</strong>，完全使用备份文件替换。<br>
+                        <span style="color:#999; font-size:12px;">适合：数据损坏修复、完整恢复</span>
                     </p>
                 </div>
             </div>
-            
-            <div style="background: #fffbea; padding: 15px; border-radius: 8px; border: 1px solid #ffd89b; margin-top: 15px;">
-                <div style="display: flex; gap: 10px; align-items: flex-start;">
-                    <span style="font-size: 16px;">💡</span>
-                    <div style="font-size: 12px; color: #d97706; line-height: 1.5;">
+
+            <div style="background:#fffbea; padding:15px; border-radius:8px; border:1px solid #ffd89b; margin-top:15px;">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <span style="font-size:16px;">💡</span>
+                    <div style="font-size:12px; color:#d97706; line-height:1.5;">
                         <strong>提示：</strong>如果你的数据乱了或者导入后看不到新内容，请使用<strong>"完全替换"</strong>模式。
                     </div>
                 </div>
@@ -605,503 +331,6 @@
         </div>
     </div>
 
-    <script>
-        
-        // 监听类别变化，显示/隐藏Vocabulary格式提示
-        function updateVocabHelper() {
-            const cat = document.getElementById('deck-category').value;
-            const helper = document.getElementById('vocab-helper');
-            if (helper) {
-                helper.style.display = cat === 'Vocabulary' ? 'block' : 'none';
-            }
-        }
-        
-        // 填入示例
-        function fillExample() {
-            document.getElementById('card-front-input').value = 'example：例子；study：学习；practice：练习';
-            document.getElementById('card-back-input').value = '';
-        }
-        
-        let decks = JSON.parse(localStorage.getItem('0804_v4_decks')) || [];
-        let resources = JSON.parse(localStorage.getItem('0804_v4_resources')) || [];
-        let trashBin = JSON.parse(localStorage.getItem('0804_v4_trash')) || [];
-
-        let currentDeck = null; let currentCardIndex = 0;
-        let currentPickerTab = 'story'; let currentEditPickerTab = 'story'; 
-        let currentEditingResourceId = null; let currentEditingDeckId = null;
-        let sorterItems = []; let pendingDeleteAction = null;
-        let currentDashboardTab = 'Speaking';
-
-        const loveNotes = [
-            "小宝练习苦啦! 奖励一个抱抱 🤗", 
-            "雅思必过! 🦆💯", 
-            "纽约今天很冷, 但想到你就很暖.☀", 
-            "记得喝水, 记得想我 💧❤", 
-            "0804 是宇宙最浪漫的坐标 🪐", 
-            "小幸运和我都陪着宝宝 ❤",
-            "最喜欢我的小潜宝宝了~",
-            "宝宝也要记得休息眼睛, 可以闭着眼睛亲我"
-        ];
-
-        function showLoveNote() {
-            const note = loveNotes[Math.floor(Math.random() * loveNotes.length)];
-            openModal("💌 来自 Fermat 的悄悄话", `<div style="text-align:center; font-size:18px; padding:20px; line-height:1.6; color:#fd79a8; font-weight:bold;">${note}</div>`);
-        }
-
-        
-        // 键盘快捷键（仅在study模式下）
-        let keyboardEnabled = false;
-        
-        document.addEventListener('keydown', function(e) {
-            if (!keyboardEnabled) return;
-            
-            // 防止在输入框中触发
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            
-            switch(e.key) {
-                case ' ':  // 空格翻转
-                    e.preventDefault();
-                    flipCard({ target: document.getElementById('flashcard') });
-                    break;
-                case 'ArrowLeft':  // 左箭头 - 不会
-                    e.preventDefault();
-                    nextCard(false);
-                    break;
-                case 'ArrowRight':  // 右箭头 - 会了
-                    e.preventDefault();
-                    nextCard(true);
-                    break;
-                case 'e':
-                case 'E':  // E键 - 编辑
-                    e.preventDefault();
-                    openEditCardModal();
-                    break;
-            }
-        });
-        window.onload = () => {
-            document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
-            navTo('dashboard');
-        };
-
-        function toggleMobileSidebar() {
-            document.querySelector('.sidebar').classList.toggle('active');
-            document.querySelector('.mobile-overlay').classList.toggle('active');
-        }
-
-        function navTo(viewId) {
-            if (window.innerWidth <= 768) {
-                document.querySelector('.sidebar').classList.remove('active');
-                document.querySelector('.mobile-overlay').classList.remove('active');
-            }
-            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
-            document.getElementById(`view-${viewId}`).style.display = (viewId === 'study') ? 'flex' : 'block';
-            document.querySelectorAll('.sidebar .btn').forEach(b => b.classList.remove('btn-active'));
-            
-            const btnMap = { 'dashboard': 'nav-dashboard', 'create': 'nav-create', 'toolbox': 'nav-toolbox', 'add-resource': 'nav-add-resource', 'trash': 'nav-trash', 'settings': 'nav-settings' };
-            if(btnMap[viewId]) document.getElementById(btnMap[viewId]).classList.add('btn-active');
-            
-            if(viewId === 'dashboard') renderDashboard(currentDashboardTab);
-            if(viewId === 'toolbox') renderToolbox('story');
-            if(viewId === 'create') renderToolboxPicker();
-            if(viewId === 'trash') renderTrash();
-            if(viewId === 'study') { keyboardEnabled = true; } else { keyboardEnabled = false; }
-        }
-
-        function showToast(msg, type='success') {
-            const c = document.getElementById('notification-area');
-            const t = document.createElement('div'); t.className = `toast ${type}`;
-            t.innerHTML = `<span style="font-size:18px; color:${type==='success'?'#00b894':'#ff7675'};">●</span> ${msg}`;
-            c.appendChild(t); setTimeout(() => { t.remove(); }, 3500);
-        }
-
-        /* --- BACKUP SYSTEM --- */
-        function exportData() {
-            const data = { decks, resources, trash: trashBin, date: new Date().toLocaleString() };
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `0804_Backup_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast("Backup downloaded!");
-        }
-        function triggerImport() { 
-            // 显示导入选项模态框
-            document.getElementById('import-options-modal').style.display = 'flex'; 
-        }
-        let importMode = 'merge'; // 'merge' or 'replace'
-        
-        function selectImportMode(mode) {
-            importMode = mode;
-            closeModal('import-options-modal');
-            document.getElementById('import-file-input').click();
-        }
-        
-        function importData(input) {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try { 
-                    const imported = JSON.parse(e.target.result);
-                    if (!imported.decks) {
-                        showToast("Invalid backup file", "error");
-                        return;
-                    }
-                    
-                    if (importMode === 'replace') {
-                        // 完全替换模式：清空现有数据，导入所有内容
-                        decks = imported.decks || [];
-                        resources = imported.resources || [];
-                        trashBin = imported.trash || [];
-                        
-                        localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
-                        localStorage.setItem('0804_v4_resources', JSON.stringify(resources));
-                        localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin));
-                        
-                        showToast(`Success! Replaced with ${decks.length} decks & ${resources.length} resources.`);
-                    } else {
-                        // 合并模式：只添加不存在的数据
-                        const currentDeckIds = new Set(decks.map(d => d.id));
-                        const newDecks = (imported.decks || []).filter(d => !currentDeckIds.has(d.id));
-                        decks = [...decks, ...newDecks];
-
-                        const currentResIds = new Set(resources.map(r => r.id));
-                        const newResources = (imported.resources || []).filter(r => !currentResIds.has(r.id));
-                        resources = [...resources, ...newResources];
-
-                        if(imported.trash) {
-                            const currentTrashIds = new Set(trashBin.map(t => t.id));
-                            const newTrash = imported.trash.filter(t => !currentTrashIds.has(t.id));
-                            trashBin = [...trashBin, ...newTrash];
-                        }
-
-                        localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
-                        localStorage.setItem('0804_v4_resources', JSON.stringify(resources));
-                        localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin));
-
-                        const totalNew = newDecks.length + newResources.length;
-                        if(totalNew === 0) showToast("No new data found. All data already exists.", "error");
-                        else showToast(`Success! Merged ${newDecks.length} decks & ${newResources.length} resources.`);
-                    }
-                    
-                    renderDashboard(currentDashboardTab); 
-                } catch (err) { 
-                    console.error(err);
-                    showToast("Error parsing file", "error"); 
-                }
-            }; 
-            reader.readAsText(file); 
-            input.value = '';
-        }
-
-        /* --- DASHBOARD --- */
-        
-        // Dashboard搜索功能
-        function filterDashboard() {
-            const searchTerm = document.getElementById('dashboard-search').value.toLowerCase();
-            const allCards = document.querySelectorAll('.card-item');
-            
-            allCards.forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                if (title.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-        function isSpeakingCategory(cat) {
-            const c = (cat || '').trim();
-            if (!c) return false;
-            const lower = c.toLowerCase();
-            if (lower.includes('speaking')) return true;
-            // tolerate shortened labels like "Part 1" / "Part2"
-            if (/part\s*1/i.test(c) || /^part\s*1$/i.test(c) || /^part1$/i.test(c)) return true;
-            if (/part\s*2/i.test(c) || /^part\s*2$/i.test(c) || /^part2$/i.test(c)) return true;
-            if (/part\s*3/i.test(c) || /^part\s*3$/i.test(c) || /^part3$/i.test(c)) return true;
-            return false;
-        }
-        function getSpeakingPart(cat) {
-            const c = (cat || '').trim().toLowerCase();
-            if (!c) return 0;
-            if (c.includes('part 1') || c == 'part1' || c == 'part 1') return 1;
-            if (c.includes('part 2') || c == 'part2' || c == 'part 2') return 2;
-            if (c.includes('part 3') || c == 'part3' || c == 'part 3') return 3;
-            return 0;
-        }
-
-        function renderDashboard(tabName = 'Speaking') {
-            currentDashboardTab = tabName;
-            const container = document.getElementById('dashboard-content');
-            container.innerHTML = '';
-
-            document.getElementById('dash-btn-speaking').classList.toggle('active', tabName === 'Speaking');
-            document.getElementById('dash-btn-vocab').classList.toggle('active', tabName === 'Vocabulary');
-
-            if (decks.length === 0) {
-                container.innerHTML = '<p style="color:#999;">No collections yet.</p>';
-                return;
-            }
-
-            if (tabName === 'Speaking') {
-                const speakingDecks = decks
-                    .filter(d => isSpeakingCategory(d.category))
-                    .sort((a, b) => {
-                        const pa = getSpeakingPart(a.category);
-                        const pb = getSpeakingPart(b.category);
-                        return (pa || 99) - (pb || 99);
-                    });
-
-                if (speakingDecks.length === 0) {
-                    container.innerHTML = '<p style="color:#999;">No Speaking decks found.</p>';
-                    return;
-                }
-
-                const part1 = speakingDecks.filter(d => getSpeakingPart(d.category) === 1);
-                const part2 = speakingDecks.filter(d => getSpeakingPart(d.category) === 2);
-                const part3 = speakingDecks.filter(d => getSpeakingPart(d.category) === 3);
-                const other = speakingDecks.filter(d => getSpeakingPart(d.category) === 0);
-
-                if (part1.length) renderExpandableSection(container, 'Speaking Part 1', part1);
-                if (part2.length) renderExpandableSection(container, 'Speaking Part 2', part2);
-                if (part3.length) renderExpandableSection(container, 'Speaking Part 3', part3);
-                if (other.length) renderExpandableSection(container, 'Speaking (Other)', other);
-
-                return;
-            }
-
-            // Vocabulary tab
-            const vocabDecks = decks.filter(d => !isSpeakingCategory(d.category));
-            if (vocabDecks.length === 0) {
-                container.innerHTML = '<p style="color:#999;">No Vocabulary decks found.</p>';
-                return;
-            }
-            renderExpandableSection(container, 'Vocabulary Lists', vocabDecks);
-        }
-
-        function renderExpandableSection(container, title, deckList) {
-            const header = document.createElement('div'); header.className = 'section-header';
-            const showButton = deckList.length > 4; const sectionId = 'sec-' + title.replace(/\s/g, '-');
-            header.innerHTML = `<div class="section-title-group">${title} <span>${deckList.length}</span></div>${showButton ? `<button class="btn-view-all" onclick="toggleSection('${sectionId}', this)">View All (<span>${deckList.length}</span>) ▼</button>` : ''}`;
-            container.appendChild(header);
-            const grid = document.createElement('div'); grid.className = 'grid-list'; grid.id = sectionId;
-            deckList.forEach((d, index) => { const el = createDeckElement(d); if (index >= 4) el.classList.add('hidden-deck'); grid.appendChild(el); });
-            container.appendChild(grid);
-        }
-        function toggleSection(sectionId, btn) {
-            const section = document.getElementById(sectionId); const hiddenItems = section.querySelectorAll('.hidden-deck');
-            const isExpanding = hiddenItems.length > 0 && hiddenItems[0].style.display !== 'block';
-            if (isExpanding) { section.querySelectorAll('.card-item').forEach(el => el.style.display = 'block'); btn.innerHTML = 'Collapse ▲'; } 
-            else { const allItems = section.querySelectorAll('.card-item'); allItems.forEach((el, idx) => { if(idx >= 4) el.style.display = 'none'; }); btn.innerHTML = `View All (<span>${allItems.length}</span>) ▼`; }
-        }
-        function createDeckElement(d) {
-            const el = document.createElement('div'); el.className = 'card-item';
-            el.innerHTML = `<button class="item-action-btn btn-delete-item" onclick="confirmDeleteDeck(${d.id}, event)">×</button><button class="item-action-btn btn-edit-item" onclick="openEditDeckModal(${d.id}, event)">✎</button><span style="font-size:10px;background:#eee;padding:3px 8px;border-radius:10px;">${((d.category || 'Uncategorized').trim() || 'Uncategorized')}</span><h3>${d.title}</h3><p>${d.cards.length} Cards</p>`;
-            el.onclick = () => startStudy(d.id); return el;
-        }
-
-        /* --- DELETE HANDLERS --- */
-        function showConfirmModal(msg, action) { document.getElementById('confirm-msg').innerText = msg; pendingDeleteAction = action; document.getElementById('confirm-modal').style.display = 'flex'; }
-        document.getElementById('confirm-btn-action').onclick = () => { if(pendingDeleteAction) pendingDeleteAction(); closeModal('confirm-modal'); };
-        function confirmDeleteDeck(id, e) { e.stopPropagation(); showConfirmModal("Move collection to trash?", () => { const d = decks.find(d => d.id === id); if(d) { moveToTrash('deck', d); decks = decks.filter(d => d.id !== id); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); showToast("Moved to trash."); } }); }
-        function deleteResource(id, e) { e.stopPropagation(); showConfirmModal("Move material to trash?", () => { const r = resources.find(r => r.id === id); if(r) { moveToTrash('resource', r); resources = resources.filter(r => r.id !== id); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); renderToolbox(null); showToast("Moved to trash."); } }); }
-        function confirmDeleteCard() { showConfirmModal("Delete this specific card?", () => { const c = currentDeck.cards[currentCardIndex]; moveToTrash('card', c, currentDeck.id); currentDeck.cards.splice(currentCardIndex, 1); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); showToast("Moved to trash."); if(currentDeck.cards.length === 0) navTo('dashboard'); else { if(currentCardIndex >= currentDeck.cards.length) currentCardIndex = 0; loadCard(); } }); }
-        function moveToTrash(type, data, originId = null) { trashBin.unshift({ id: Date.now(), type, data, originId, date: new Date().toLocaleString() }); localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); }
-        function renderTrash() { const c = document.getElementById('trash-list'); if(!c) return; c.innerHTML = ''; if(trashBin.length === 0) { c.innerHTML = '<p style="color:#999;">Trash is empty.</p>'; return; } trashBin.forEach(item => { const el = document.createElement('div'); el.className = 'trash-item'; let title = item.type === 'deck' ? "📚 " + item.data.title : (item.type === 'resource' ? "📄 " + item.data.title : "🃏 " + item.data.frontTitle); el.innerHTML = `<div class="trash-item-info"><span class="trash-type">${item.date}</span><span class="trash-title">${title}</span></div><div class="trash-actions"><button class="btn-restore" onclick="restoreItem(${item.id})">Restore</button><button class="btn-forever" onclick="hardDelete(${item.id})">Delete</button></div>`; c.appendChild(el); }); }
-        function restoreItem(id) { const index = trashBin.findIndex(i => i.id === id); if(index === -1) return; const item = trashBin[index]; if(item.type === 'deck') { decks.push(item.data); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); } else if(item.type === 'resource') { resources.push(item.data); localStorage.setItem('0804_v4_resources', JSON.stringify(resources)); } else if(item.type === 'card') { let deck = decks.find(d => d.id === item.originId); if(!deck) { deck = decks.find(d => d.title === "Restored Cards"); if(!deck) { deck = { id: Date.now(), title: "Restored Cards", category: "Vocabulary", cards: [] }; decks.push(deck); } } deck.cards.push(item.data); localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); } trashBin.splice(index, 1); localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); renderTrash(); showToast("Restored!"); }
-        function hardDelete(id) { showConfirmModal("Delete forever?", () => { trashBin = trashBin.filter(i => i.id !== id); localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); renderTrash(); showToast("Deleted."); }); }
-        function confirmEmptyTrash() { showConfirmModal("Empty trash?", () => { trashBin = []; localStorage.setItem('0804_v4_trash', JSON.stringify(trashBin)); renderTrash(); showToast("Trash emptied."); }); }
-
-        /* --- STANDARD LOGIC --- */
-        function insertResourceLink(t) { const el=document.getElementById('card-back-input'); const v = (el.value.length > 0 ? "\n" : "") + `[${t}]`; el.value += v; el.selectionStart = el.selectionEnd = el.value.length; el.focus(); }
-        function insertEditLink(t) { const el=document.getElementById('edit-back-content'); const v = (el.value.length > 0 ? "\n" : "") + `[${t}]`; el.value += v; el.selectionStart = el.selectionEnd = el.value.length; el.focus(); }
-        function setPickerTab(t) { currentPickerTab=t; document.getElementById('tab-picker-story').className=`tab-btn ${t==='story'?'active':''}`; document.getElementById('tab-picker-deck').className=`tab-btn ${t==='deck'?'active':''}`; document.getElementById('tab-picker-vocab').className=`tab-btn ${t==='vocab'?'active':''}`; renderToolboxPicker(); }
-        function renderToolboxPicker() { 
-            const c=document.getElementById('toolbox-picker-list'); const s=document.getElementById('toolbox-picker-search').value.toLowerCase(); c.innerHTML=''; 
-            if (currentPickerTab === 'deck') {
-                const f = decks.filter(d => d.title.toLowerCase().includes(s));
-                f.forEach(d => { const el = document.createElement('div'); el.className = 'toolbox-draggable deck'; el.draggable = true; el.innerHTML = `📂 <span>${d.title}</span><div class="preview-tooltip">${d.cards.length} cards</div>`; el.onclick = () => insertResourceLink(d.title); el.ondragstart = (e) => { e.dataTransfer.setData("text/plain", `\n[${d.title}]`); e.dataTransfer.effectAllowed="copy"; }; c.appendChild(el); });
-            } else {
-                const f=resources.filter(r=>((r.type||'story')===currentPickerTab)&&r.title.toLowerCase().includes(s)); 
-                f.forEach(r=>{ const el=document.createElement('div'); el.className=`toolbox-draggable ${r.type||'story'}`; el.draggable=true; if(r.type==='vocab') el.innerHTML=`<span>${r.title}</span><div class="preview-tooltip">${r.content.substring(0,100)}...</div>`; else el.innerHTML=`<strong>${r.title}</strong><div class="preview-tooltip">${r.content.substring(0,100)}...</div>`; el.onclick=()=>insertResourceLink(r.title); el.ondragstart=(e)=>{e.dataTransfer.setData("text/plain", `\n[${r.title}]`);e.dataTransfer.effectAllowed="copy";}; c.appendChild(el); }); 
-            }
-        }
-        function setEditPickerTab(t) { currentEditPickerTab = t; document.getElementById('edit-picker-story').className = `tab-btn ${t==='story'?'active':''}`; document.getElementById('edit-picker-vocab').className = `tab-btn ${t==='vocab'?'active':''}`; document.getElementById('edit-picker-deck').className = `tab-btn ${t==='deck'?'active':''}`; renderEditPicker(); }
-        function renderEditPicker() {
-            const c = document.getElementById('edit-picker-list'); c.innerHTML=''; const s = document.getElementById('edit-picker-search').value.toLowerCase();
-            if (currentEditPickerTab === 'deck') { const f = decks.filter(d => d.title.toLowerCase().includes(s)); f.forEach(d => { const el = document.createElement('div'); el.className = 'toolbox-draggable deck'; el.style.marginBottom = "8px"; el.innerHTML = `📂 <span>${d.title}</span>`; el.draggable = true; el.onclick = () => insertEditLink(d.title); el.ondragstart = (e) => { e.dataTransfer.setData("text/plain", `\n[${d.title}]`); }; c.appendChild(el); }); } 
-            else { const f = resources.filter(r => ((r.type||'story')===currentEditPickerTab) && r.title.toLowerCase().includes(s)); f.forEach(r => { const el = document.createElement('div'); el.className = 'toolbox-draggable story'; el.style.marginBottom = "8px"; el.innerHTML = `<span>${r.title}</span>`; el.draggable = true; el.onclick = () => insertEditLink(r.title); el.ondragstart = (e) => { e.dataTransfer.setData("text/plain", `\n[${r.title}]`); }; c.appendChild(el); }); }
-        }
-        function loadCard() {
-            const c = currentDeck.cards[currentCardIndex]; const el = document.getElementById('flashcard'); el.classList.remove('is-flipped');
-            setTimeout(()=>{
-                document.getElementById('card-deck-badge-back').innerText = currentDeck.title; document.getElementById('card-front-title').innerText = c.frontTitle;
-                const ul = document.getElementById('card-front-reqs'); ul.innerHTML='';
-                if(c.frontBullets && c.frontBullets.length) { ul.style.display='block'; c.frontBullets.forEach(b=>{const li=document.createElement('li');li.innerText=b;ul.appendChild(li)}); } else ul.style.display='none';
-                const raw = c.backContent || ""; const container = document.getElementById('card-back-content');
-                if(!raw.trim()) container.innerHTML = '<span style="color:#aaa; font-style:italic;">(No content)</span>';
-                else {
-                    const lines = raw.split('\n').filter(l => l.trim() !== '');
-                    if(lines.length > 1 || raw.includes('•') || raw.includes('- ')) {
-                        let html = '<ul class="flashcard-list">';
-                        lines.forEach(line => { let text = line.replace(/^[•\-\*]\s*/, ''); text = text.replace(/\[(.*?)\]/g, (m,t) => createLink(t)).replace(/【(.*?)】/g, (m,t) => createLink(t)); html += `<li>${text}</li>`; });
-                        html += '</ul>'; container.innerHTML = html;
-                    } else { container.innerHTML = raw.replace(/\[(.*?)\]/g, (m,t) => createLink(t)).replace(/【(.*?)】/g, (m,t) => createLink(t)); }
-                }
-            }, 200);
-        }
-        function createLink(term) { const lower = term.trim().toLowerCase(); const deck = decks.find(d => d.title.toLowerCase() === lower); if(deck) return `<span class="smart-link" onclick="handleDeckClick(event, '${deck.id}')">📦 ${term}</span>`; const res = resources.find(x => x.title.trim().toLowerCase() === lower); if(res) return `<span class="smart-link" onclick="handleRefClick(event, '${term}')">📄 ${term}<span class="ref-tooltip">${res.content.substring(0,80)}...</span></span>`; return `<b>${term}</b>`; }
-        window.handleRefClick = function(e,term) { e.stopPropagation(); const r=resources.find(x=>x.title.trim().toLowerCase()===term.trim().toLowerCase()); if(r) openModal(r.title, r.content); }
-        window.handleDeckClick = function(e, deckId) { e.stopPropagation(); const deck = decks.find(d => d.id == deckId); if(deck && deck.cards.length > 0) { const card = deck.cards[0]; openModal("📦 " + deck.title, card.backContent || "(Empty Card)"); } else { showToast("Deck empty", "error"); } }
-        function flipCard(e) { if(e.target.classList.contains('smart-link') || e.target.closest('button')) return; document.getElementById('flashcard').classList.toggle('is-flipped'); }
-        function openEditDeckModal(id, e) { e.stopPropagation(); currentEditingDeckId=id; const d=decks.find(x=>x.id===id); if(d){ document.getElementById('edit-deck-name').value=d.title; document.getElementById('edit-deck-cat').value=d.category||'Speaking Part 2'; document.getElementById('edit-deck-modal').style.display='flex'; } }
-        function saveDeckEdits() { const d=decks.find(x=>x.id===currentEditingDeckId); if(d){ d.title=document.getElementById('edit-deck-name').value; d.category=document.getElementById('edit-deck-cat').value; localStorage.setItem('0804_v4_decks', JSON.stringify(decks)); renderDashboard(currentDashboardTab); closeModal('edit-deck-modal'); showToast("Updated!"); } }
-        function toggleImportMode() { const m=document.getElementById('res-type-select').value; document.getElementById('import-single').style.display=m==='story'?'block':'none'; document.getElementById('import-sorter').style.display=m==='sorter'?'block':'none'; }
-
-        /* ✅ 正确的保存素材（Add Material） */
-        function saveResource() { 
-            const t = document.getElementById('res-title').value.trim();
-            const c = document.getElementById('res-content').value;
-            if (!t) {
-                showToast("Title needed","error");
-                return;
-            }
-            resources.push({id: Date.now(), title: t, content: c, type: 'story'});
-            localStorage.setItem('0804_v4_resources', JSON.stringify(resources));
-            showToast("Saved");
-            document.getElementById('res-title').value = "";
-            document.getElementById('res-content').value = "";
-            navTo('toolbox');
-        }
-
-        /* ✅ 生成卡片（Create Flashcard 的按钮调用这个） */
-        function processDeck() { 
-            const fr=document.getElementById('card-front-input').value; 
-            const br=document.getElementById('card-back-input').value; 
-            const ti=document.getElementById('deck-title').value||"Untitled"; 
-            const cat=document.getElementById('deck-category').value; 
-            if(!fr.trim()){ 
-                document.getElementById('card-front-input').style.borderColor="#ff7675"; 
-                showToast("Prompt is empty!", "error"); return; 
-            }
-            
-            // ✨ 新功能：Vocabulary 批量单词卡片创建
-            if(cat === "Vocabulary") {
-                // 解析格式：英文：中文；英文：中文
-                const pairs = fr.split(/；|;/).map(p => p.trim()).filter(p => p);
-                if(pairs.length === 0) {
-                    showToast("请输入单词！格式：英文：中文；英文：中文", "error");
-                    return;
-                }
-                
-                const newCards = [];
-                let hasError = false;
-                
-                pairs.forEach((pair, index) => {
-                    // 分割英文和中文
-                    const parts = pair.split(/：|:/).map(p => p.trim());
-                    if(parts.length !== 2 || !parts[0] || !parts[1]) {
-                        showToast(`格式错误！请检查第 ${index + 1} 个单词`, "error");
-                        hasError = true;
-                        return;
-                    }
-                    
-                    const english = parts[0];
-                    const chinese = parts[1];
-                    
-                    // 创建单词卡片
-                    newCards.push({
-                        id: Date.now() + index,
-                        frontTitle: english,
-                        frontBullets: [],
-                        backContent: chinese
-                    });
-                });
-                
-                if(hasError) return;
-
-                // 显示预览确认（只预览，不在这里落库，避免重复）
-                showPreviewModal(newCards, ti, cat);
-                return;
-            }
-            
-            // 原有的 Speaking 类型卡片创建逻辑
-            const l=fr.split(/\n+/).filter(x=>x.trim()); let tl=[], bl=[], sp=false; 
-            l.forEach(x=>{ 
-                if(x.toLowerCase().startsWith('you should')||x.includes('should say:')){sp=true;return;} 
-                if(!sp) tl.push(x.trim()); 
-                else { 
-                    let c=x.replace(/^(and )?explain /i,'').replace(/^(and )?describe /i,'').trim(); 
-                    if(c) bl.push(c); 
-                } 
-            }); 
-            let ft=sp?(tl.length?tl.join(' '):ti):(l.length>1?ti:fr.trim()||ti); 
-            if(!sp&&l.length>1) bl=l; 
-            const nc={id:Date.now(),frontTitle:ft,frontBullets:bl,backContent:br.trim()}; 
-            const idx=decks.findIndex(d=>d.title===ti); 
-            if(idx>-1) decks[idx].cards.push(nc); 
-            else decks.push({id:Date.now(),title:ti,category:cat,cards:[nc]}); 
-            localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); 
-            document.getElementById('card-front-input').value=""; 
-            document.getElementById('card-back-input').value=""; 
-            showToast("宝宝真棒! ❤️"); 
-        }
-
-        function startStudy(id) { currentDeck=decks.find(d=>d.id===id); currentCardIndex=0; if(!currentDeck||!currentDeck.cards.length) return showToast("Empty deck","error"); navTo('study'); loadCard(); }
-        function nextCard(g) { currentCardIndex++; if(currentCardIndex<currentDeck.cards.length) loadCard(); else { showToast("宝宝辛苦啦! 😘"); navTo('dashboard'); } }
-        function openEditResourceModal(id, e) { e.stopPropagation(); currentEditingResourceId=id; const r=resources.find(x=>x.id===id); document.getElementById('edit-res-title').value=r.title; document.getElementById('edit-res-content').value=r.content; document.getElementById('edit-resource-modal').style.display='flex'; }
-        function saveResourceEdits() { const idx=resources.findIndex(r=>r.id===currentEditingResourceId); if(idx>-1){ resources[idx].title=document.getElementById('edit-res-title').value; resources[idx].content=document.getElementById('edit-res-content').value; localStorage.setItem('0804_v4_resources',JSON.stringify(resources)); renderToolbox(null); closeModal('edit-resource-modal'); } }
-        function openEditCardModal() { const c=currentDeck.cards[currentCardIndex]; document.getElementById('edit-front-title').value=c.frontTitle; document.getElementById('edit-front-bullets').value=c.frontBullets?c.frontBullets.join('\n'):''; document.getElementById('edit-back-content').value=c.backContent; document.getElementById('edit-card-modal').style.display='flex'; renderEditPicker(); }
-        function saveCardEdits() { const c=currentDeck.cards[currentCardIndex]; c.frontTitle=document.getElementById('edit-front-title').value; c.frontBullets=document.getElementById('edit-front-bullets').value.split('\n').filter(x=>x.trim()); c.backContent=document.getElementById('edit-back-content').value; localStorage.setItem('0804_v4_decks',JSON.stringify(decks)); closeModal('edit-card-modal'); loadCard(); }
-        function openModal(t, c) { if(arguments.length===2){ document.getElementById('modal-title').innerText=t; document.getElementById('modal-body').innerHTML=c; document.getElementById('res-modal').style.display='flex'; } }
-        
-        // 显示卡片预览模态框
-        function showPreviewModal(cards, title, category) {
-            const modal = document.getElementById('preview-modal');
-            const list = document.getElementById('preview-list');
-            list.innerHTML = '';
-            
-            cards.forEach((card, idx) => {
-                const item = document.createElement('div');
-                item.style.cssText = 'padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;';
-                item.innerHTML = `
-                    <div>
-                        <span style="font-weight: 700; color: var(--primary-dark);">${card.frontTitle}</span>
-                        <span style="color: #888; margin: 0 8px;">→</span>
-                        <span>${card.backContent}</span>
-                    </div>
-                    <span style="color: #00b894;">✓</span>
-                `;
-                list.appendChild(item);
-            });
-            
-            document.getElementById('preview-count').innerText = cards.length;
-            document.getElementById('preview-deck-title').innerText = title;
-            
-            // 设置确认按钮的点击事件
-            document.getElementById('confirm-create-btn').onclick = () => {
-                // ✅ 只有点击确认才真正写入 decks（避免出现两份同名 deck）
-                const existingIdx = decks.findIndex(d => d.title === title && (d.category || '') === category);
-                if (existingIdx > -1) {
-                    decks[existingIdx].cards.push(...cards);
-                } else {
-                    decks.push({
-                        id: Date.now(),
-                        title: title,
-                        category: category,
-                        cards: cards
-                    });
-                }
-
-                localStorage.setItem('0804_v4_decks', JSON.stringify(decks));
-                document.getElementById('card-front-input').value = "";
-                document.getElementById('card-back-input').value = "";
-                closeModal('preview-modal');
-                renderDashboard(currentDashboardTab);
-                showToast(`成功创建 ${cards.length} 个单词卡片! 宝宝真棒! ❤️`);
-            };
-            
-            modal.style.display = 'flex';
-        }
-        function closeModal(id) { document.getElementById(id).style.display='none'; }
-
-    </script>
+    <script src="assets/app.js" defer></script>
 </body>
 </html>
